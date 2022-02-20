@@ -4,7 +4,7 @@ public interface Account {
 
     void deposit(int amount) throws IllegalArgumentException;
 
-    void withdraw(int amount) throws InsufficientFundsException;
+    void withdraw(int amount) throws InsufficientFundsException, IllegalArgumentException;
 
     String printStatement();
 
