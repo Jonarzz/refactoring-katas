@@ -18,6 +18,12 @@
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.mercateo</groupId>
+            <artifactId>test-clock</artifactId>
+            <version>1.0.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
