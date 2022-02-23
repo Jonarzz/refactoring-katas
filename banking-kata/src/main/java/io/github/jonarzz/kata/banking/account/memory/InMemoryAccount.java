@@ -52,7 +52,8 @@ public class InMemoryAccount implements Account {
                 rows.add(new DataRow(timestamp, amount, accountBalance));
             }
         }
-        return new Statement(rows).toString();
+        return Statement.withHeader(rows)
+                        .toString();
     }
 
 }

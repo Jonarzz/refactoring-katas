@@ -2,16 +2,15 @@ package io.github.jonarzz.kata.banking.account.memory;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAccessor;
 
 class AccountOperation {
 
     static Clock clock = Clock.systemDefaultZone();
 
-    private TemporalAccessor timestamp;
+    private LocalDate timestamp;
     private int amount;
 
-    private AccountOperation(TemporalAccessor timestamp, int amount) {
+    private AccountOperation(LocalDate timestamp, int amount) {
         this.timestamp = timestamp;
         this.amount = amount;
     }
@@ -20,7 +19,7 @@ class AccountOperation {
         return new AccountOperation(LocalDate.now(clock), amount);
     }
 
-    TemporalAccessor timestamp() {
+    LocalDate timestamp() {
         return timestamp;
     }
 
