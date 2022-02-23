@@ -155,13 +155,13 @@ abstract class AbstractAccountTest extends Specification {
 
         then: "print statement"
             account.printStatement() == """\
-            Date        Amount  Balance
-            1.1.2019      +100      100
-            1.10.2019     -100        0
-            15.2.2020     +200      200
-            7.7.2021      -200        0
-            10.9.2021     +300      300
-            2.1.2022      -300        0\
+            Date       Amount  Balance
+            1.1.2019     +100      100
+            1.10.2019    -100        0
+            15.2.2020    +200      200
+            7.7.2021     -200        0
+            10.9.2021    +300      300
+            2.1.2022     -300        0\
             """.stripIndent()
     }
 
