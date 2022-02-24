@@ -8,13 +8,17 @@ import spock.lang.Specification
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.function.Consumer
 
 import static java.time.ZoneId.systemDefault
+import static java.util.concurrent.TimeUnit.MILLISECONDS
 
 abstract class AbstractAccountTest extends Specification {
 
-    private TestClock testClock
-    private Account account
+    TestClock testClock
+    Account account
 
     def setup() {
         testClock = createTestClock()
@@ -224,6 +228,40 @@ abstract class AbstractAccountTest extends Specification {
             15.10.2020    +100      100
             15.10.2020    -100        0\
             """.stripIndent()
+    }
+
+    def "Multithreading is supported - #invocationsCount invocations"() {
+        given:
+            testClock.set(createInstant(2022, 1, 30))
+
+        when:
+            executeTimesN(invocationsCount, account::deposit)
+            executeTimesN(invocationsCount, account::withdraw)
+
+        then:
+            def statementLines = account.printStatement()
+                                                   .lines()
+                                                   .toList()
+            statementLines.size() == 1 + 2 * invocationsCount // header + N deposits + N withdrawals
+            // actual last amount withdrawn is unknown because of concurrency
+            statementLines.last().matches("30\\.1\\.2022( {5}-\\d\\d| {6}-\\d) {8}0")
+
+        where:
+            invocationsCount << [10, 20, 50, 99]
+    }
+
+    private static void executeTimesN(int nTimes, Consumer<Integer> executable) {
+        def threadPool = Executors.newFixedThreadPool(Math.min(4, nTimes))
+        def latch = new CountDownLatch(nTimes)
+        for (def i = 1; i <= nTimes; i++) {
+            def value = i
+            threadPool.execute(() -> {
+                executable.accept(value)
+                latch.countDown()
+            })
+        }
+        latch.await(100, MILLISECONDS)
+        threadPool.shutdownNow()
     }
 
     private static TestClock createTestClock() {
