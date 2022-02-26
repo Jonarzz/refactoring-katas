@@ -11,6 +11,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 import static java.time.ZoneId.systemDefault
@@ -41,6 +42,14 @@ abstract class AbstractAccountTest extends Specification {
             24.12.2015    +500      500
             23.8.2016     -100      400\
             """.stripIndent()
+    }
+
+    def "Statement without any operation"() {
+        when:
+            def statement = account.printStatement()
+
+        then: "print statement"
+            statement == "Date  Amount  Balance"
     }
 
     def "Singular deposition of #amount"() {
@@ -249,6 +258,36 @@ abstract class AbstractAccountTest extends Specification {
 
         where:
             invocationsCount << [10, 20, 50, 99]
+    }
+
+    @Timeout(1)
+    def "Print statement during multithreaded operations execution - #invocationsCount invocations"() {
+        given:
+            testClock.set(createInstant(2022, 1, 30))
+            def statementHolder = new AtomicReference()
+
+        when:
+            executeTimesN(invocationsCount, amount -> {
+                account.deposit(amount)
+                if (amount == invocationsCount / 4) {
+                    statementHolder.set(account.printStatement())
+                }
+                account.withdraw(amount)
+            })
+
+        then:
+            def finalStatementLinesCount = account.printStatement()
+                    .lines()
+                    .toList()
+                    .size()
+            finalStatementLinesCount == 1 + 2 * invocationsCount // header + N deposits + N withdrawals
+            statementHolder.get()
+                           .lines()
+                           .toList()
+                           .size() < finalStatementLinesCount
+
+        where:
+            invocationsCount << [100, 200, 1000]
     }
 
     private static void executeTimesN(int nTimes, Consumer<Integer> executable) {

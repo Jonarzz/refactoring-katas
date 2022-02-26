@@ -18,39 +18,47 @@ public class InMemoryAccount implements Account {
     private long balance = 0;
 
     @Override
-    public synchronized void deposit(int amount) throws IllegalArgumentException {
+    public void deposit(int amount) throws IllegalArgumentException {
         if (amount < 0) {
             throw new IllegalArgumentException("Deposition amount cannot be negative");
         }
-        balance += amount;
-        operations.add(AccountOperation.now(amount));
+        synchronized (this) {
+            balance += amount;
+            operations.add(AccountOperation.now(amount));
+        }
     }
 
     @Override
-    public synchronized void withdraw(int amount) throws InsufficientFundsException {
+    public void withdraw(int amount) throws InsufficientFundsException {
         if (amount < 0) {
             throw new IllegalArgumentException("Withdrawal amount cannot be negative");
         }
-        var balanceBefore = balance;
-        balance -= amount;
-        if (balance < 0) {
-            balance = balanceBefore;
-            throw new InsufficientFundsException();
+        synchronized (this) {
+            var balanceBefore = balance;
+            balance -= amount;
+            if (balance < 0) {
+                balance = balanceBefore;
+                throw new InsufficientFundsException();
+            }
+            operations.add(AccountOperation.now(-amount));
         }
-        operations.add(AccountOperation.now(-amount));
     }
 
     @Override
     public String printStatement() {
         List<DataRow> rows = new ArrayList<>();
+        int operationsCountSnapshot;
         synchronized (this) {
-            long accountBalance = 0;
-            for (var operation : operations) {
-                var timestamp = operation.timestamp();
-                var amount = operation.amount();
-                accountBalance += amount;
-                rows.add(new DataRow(timestamp, amount, accountBalance));
-            }
+            // operations list is add-only
+            operationsCountSnapshot = operations.size();
+        }
+        long accountBalance = 0;
+        for (int i = 0; i < operationsCountSnapshot; i++) {
+            var operation = operations.get(i);
+            var timestamp = operation.timestamp();
+            var amount = operation.amount();
+            accountBalance += amount;
+            rows.add(new DataRow(timestamp, amount, accountBalance));
         }
         return Statement.withHeader(rows)
                         .toString();

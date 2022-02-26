@@ -5,14 +5,16 @@ import java.util.List;
 
 public class Column {
 
-    private List<String> values = new ArrayList<>();
+    private final List<String> values = new ArrayList<>();
+
+    private int maxValueLength;
 
     private Column() {
 
     }
 
     private Column(String header) {
-        values.add(header);
+        addValue(header);
     }
 
     public static Column withHeader(String header) {
@@ -25,14 +27,15 @@ public class Column {
 
     public void addValue(String value) {
         values.add(value);
+        maxValueLength = Math.max(value.length(), maxValueLength);
     }
 
     public AlignedColumn alignLeft() {
-        return AlignedColumn.left(values);
+        return AlignedColumn.left(values, maxValueLength);
     }
 
     public AlignedColumn alignRight() {
-        return AlignedColumn.right(values);
+        return AlignedColumn.right(values, maxValueLength);
     }
 
 }
