@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.banking.account.memory
 
-import io.github.jonarzz.kata.banking.AbstractAccountTest
+import io.github.jonarzz.kata.banking.account.AbstractAccountTest
 import io.github.jonarzz.kata.banking.account.Account
 
 import java.time.Clock

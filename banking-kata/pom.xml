@@ -25,10 +25,24 @@
             <artifactId>spock-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.mercateo</groupId>
             <artifactId>test-clock</artifactId>
             <version>1.0.2</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

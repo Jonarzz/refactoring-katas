@@ -1,9 +1,10 @@
-package io.github.jonarzz.kata.banking
+package io.github.jonarzz.kata.banking.account
 
 import com.mercateo.test.clock.TestClock
 import io.github.jonarzz.kata.banking.account.Account
 import io.github.jonarzz.kata.banking.account.InsufficientFundsException
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import java.time.Clock
 import java.time.Instant
@@ -13,7 +14,6 @@ import java.util.concurrent.Executors
 import java.util.function.Consumer
 
 import static java.time.ZoneId.systemDefault
-import static java.util.concurrent.TimeUnit.MILLISECONDS
 
 abstract class AbstractAccountTest extends Specification {
 
@@ -230,7 +230,8 @@ abstract class AbstractAccountTest extends Specification {
             """.stripIndent()
     }
 
-    def "Multithreading is supported - #invocationsCount invocations"() {
+    @Timeout(1)
+    def "Multithreaded execution is supported - #invocationsCount invocations"() {
         given:
             testClock.set(createInstant(2022, 1, 30))
 
@@ -260,7 +261,7 @@ abstract class AbstractAccountTest extends Specification {
                 latch.countDown()
             })
         }
-        latch.await(100, MILLISECONDS)
+        latch.await()
         threadPool.shutdownNow()
     }
 
