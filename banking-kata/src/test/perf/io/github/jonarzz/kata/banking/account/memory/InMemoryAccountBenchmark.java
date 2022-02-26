@@ -13,8 +13,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 @Fork(1)
-@Warmup(iterations = 5, time = 5)
-@Measurement(iterations = 5, time = 5)
+@Warmup(iterations = 5, time = 10)
+@Measurement(iterations = 5, time = 10)
 public class InMemoryAccountBenchmark {
 
     public static void main(String[] args) throws IOException {

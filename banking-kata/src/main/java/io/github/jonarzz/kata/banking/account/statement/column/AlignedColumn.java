@@ -1,13 +1,8 @@
 package io.github.jonarzz.kata.banking.account.statement.column;
 
-import static java.util.Comparator.naturalOrder;
-import static java.util.stream.Collectors.joining;
-
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.stream.IntStream;
 
 public class AlignedColumn {
 
@@ -21,16 +16,16 @@ public class AlignedColumn {
         return alignedValues.iterator();
     }
 
-    static AlignedColumn left(List<String> values) {
-        return align(values, AlignedColumn::alignedLeft);
+    static AlignedColumn left(List<String> values, int maxValueLength) {
+        return align(values, maxValueLength, AlignedColumn::alignedLeft);
     }
 
-    static AlignedColumn right(List<String> values) {
-        return align(values, AlignedColumn::alignedRight);
+    static AlignedColumn right(List<String> values, int maxValueLength) {
+        return align(values, maxValueLength, AlignedColumn::alignedRight);
     }
 
-    private static AlignedColumn align(List<String> values, BiFunction<String, Integer, String> aligner) {
-        var maxValueLength = maxLength(values);
+    private static AlignedColumn align(List<String> values, int maxValueLength,
+                                       BiFunction<String, Integer, String> aligner) {
         return new AlignedColumn(values.stream()
                                        .map(value -> aligner.apply(value, maxValueLength))
                                        .toList());
@@ -44,17 +39,8 @@ public class AlignedColumn {
         return nSpaces(maxWidth - value.length()) + value;
     }
 
-    private static int maxLength(Collection<String> values) {
-        return values.stream()
-                     .map(String::length)
-                     .max(naturalOrder())
-                     .orElse(0);
-    }
-
     private static String nSpaces(int n) {
-        return IntStream.range(0, n)
-                        .mapToObj(i -> " ")
-                        .collect(joining());
+        return " ".repeat(n);
     }
 
 }
