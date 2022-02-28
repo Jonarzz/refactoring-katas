@@ -14,6 +14,7 @@ An example statement would be:
 ## Performance improvements
 The application performance was verified using a JMH benchmark. After that a small refactoring was performed
 and the performance improvement is obvious as shown on the images below (more = better).
+_Generated using [this page](https://jmh.morethan.io/)_.
 
 Before:
 ![before](performance/before.PNG)
