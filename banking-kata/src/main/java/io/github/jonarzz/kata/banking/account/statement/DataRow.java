@@ -12,10 +12,14 @@ public class DataRow {
     private String amount;
     private String balance;
 
-    public DataRow(TemporalAccessor timestamp, int amount, long balance) {
+    private DataRow(TemporalAccessor timestamp, int amount, long balance) {
         this.timestamp = TIMESTAMP_FORMATTER.format(timestamp);
         this.amount = amountAsString(amount);
         this.balance = String.valueOf(balance);
+    }
+
+    public static DataRow fromOperation(TemporalAccessor timestamp, int amount, long balance) {
+        return new DataRow(timestamp, amount, balance);
     }
 
     String timestamp() {

@@ -4,18 +4,23 @@ import com.google.errorprone.annotations.concurrent.GuardedBy;
 import io.github.jonarzz.kata.banking.account.Account;
 import io.github.jonarzz.kata.banking.account.InsufficientFundsException;
 import io.github.jonarzz.kata.banking.account.statement.DataRow;
-import io.github.jonarzz.kata.banking.account.statement.Statement;
+import io.github.jonarzz.kata.banking.account.statement.Table;
+import io.github.jonarzz.kata.banking.account.statement.printer.StatementPrinter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class InMemoryAccount implements Account {
+class InMemoryAccount<S> implements Account<S> {
 
+    private final StatementPrinter<S> statementPrinter;
     @GuardedBy("this")
     private final List<AccountOperation> operations = new ArrayList<>();
-
     @GuardedBy("this")
     private long balance = 0;
+
+    InMemoryAccount(StatementPrinter<S> statementPrinter) {
+        this.statementPrinter = statementPrinter;
+    }
 
     @Override
     public void deposit(int amount) throws IllegalArgumentException {
@@ -45,7 +50,7 @@ public class InMemoryAccount implements Account {
     }
 
     @Override
-    public String printStatement() {
+    public S printStatement() {
         List<DataRow> rows = new ArrayList<>();
         int operationsCountSnapshot;
         synchronized (this) {
@@ -58,10 +63,10 @@ public class InMemoryAccount implements Account {
             var timestamp = operation.timestamp();
             var amount = operation.amount();
             accountBalance += amount;
-            rows.add(new DataRow(timestamp, amount, accountBalance));
+            rows.add(DataRow.fromOperation(timestamp, amount, accountBalance));
         }
-        return Statement.withHeader(rows)
-                        .toString();
+        var table = Table.withHeader(rows);
+        return statementPrinter.print(table);
     }
 
 }

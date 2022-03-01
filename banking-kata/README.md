@@ -17,6 +17,16 @@ and the performance improvement is obvious as shown on the images below (more = 
 _Generated using [this page](https://jmh.morethan.io/)_.
 
 Before:
-![before](performance/before.PNG)
+![before](performance/first/before.PNG)
 After:
-![after](performance/after.PNG)
+![after](performance/first/after.PNG)
+
+---
+
+After improvement of the benchmark, different approach to synchronization while printing was verified once again
+and a 20% performance improvement can be easily observed:
+
+Before:
+![before](performance/second/before.PNG)
+After:
+![after](performance/second/after.PNG)
