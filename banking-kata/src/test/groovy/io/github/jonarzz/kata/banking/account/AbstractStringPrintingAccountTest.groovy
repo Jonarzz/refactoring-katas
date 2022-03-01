@@ -16,17 +16,17 @@ import java.util.function.Consumer
 
 import static java.time.ZoneId.systemDefault
 
-abstract class AbstractAccountTest extends Specification {
+abstract class AbstractStringPrintingAccountTest extends Specification {
 
     TestClock testClock
-    Account account
+    Account<String> account
 
     def setup() {
         testClock = createTestClock()
         account = createAccount(testClock)
     }
 
-    protected abstract Account createAccount(Clock clock);
+    protected abstract Account<String> createAccount(Clock clock);
 
     def "Kata acceptance test"() {
         when: "deposit"
