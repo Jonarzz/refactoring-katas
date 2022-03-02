@@ -1,16 +1,17 @@
 package io.github.jonarzz.kata.banking.account.memory;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
-import io.github.jonarzz.kata.banking.account.Account;
 import io.github.jonarzz.kata.banking.account.InsufficientFundsException;
 import io.github.jonarzz.kata.banking.account.statement.DataRow;
 import io.github.jonarzz.kata.banking.account.statement.Table;
 import io.github.jonarzz.kata.banking.account.statement.printer.StatementPrinter;
+import io.github.jonarzz.kata.banking.account.validation.PositiveAmount;
+import io.github.jonarzz.kata.banking.account.validation.ValidatedAccount;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class InMemoryAccount<S> implements Account<S> {
+class InMemoryAccount<S> extends ValidatedAccount<S> {
 
     private final StatementPrinter<S> statementPrinter;
     @GuardedBy("this")
@@ -23,10 +24,8 @@ class InMemoryAccount<S> implements Account<S> {
     }
 
     @Override
-    public void deposit(int amount) throws IllegalArgumentException {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Deposition amount cannot be negative");
-        }
+    public void deposit(PositiveAmount positiveAmount) {
+        var amount = positiveAmount.value();
         synchronized (this) {
             balance += amount;
             operations.add(AccountOperation.now(amount));
@@ -34,16 +33,14 @@ class InMemoryAccount<S> implements Account<S> {
     }
 
     @Override
-    public void withdraw(int amount) throws InsufficientFundsException {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Withdrawal amount cannot be negative");
-        }
+    public void withdraw(PositiveAmount positiveAmount) throws InsufficientFundsException {
+        var amount = positiveAmount.value();
         synchronized (this) {
             var balanceBefore = balance;
             balance -= amount;
             if (balance < 0) {
                 balance = balanceBefore;
-                throw new InsufficientFundsException();
+                throw new InsufficientFundsException(balance);
             }
             operations.add(AccountOperation.now(-amount));
         }

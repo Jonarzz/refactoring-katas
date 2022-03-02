@@ -64,7 +64,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
 
         where:
             day | month | year | amount || expectedStatement
-            10  | 11    | 2020 | 0      || "Date        Amount  Balance\n$day.$month.$year       0        0"
+            10  | 11    | 2020 | 1      || "Date        Amount  Balance\n$day.$month.$year      +1        1"
             11  | 10    | 1994 | 100    || "Date        Amount  Balance\n$day.$month.$year    +100      100"
             22  | 12    | 2001 | 5000   || "Date        Amount  Balance\n$day.$month.$year   +5000     5000"
             31  | 10    | 2022 | 10_000 || "Date        Amount  Balance\n$day.$month.$year  +10000    10000"
@@ -83,7 +83,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
 
         where:
             day | month | year | amount || expectedStatement
-            10  | 11    | 2020 | 0      || "Date        Amount  Balance\n$day.$month.$year       0        0\n$day.$month.$year       0        0"
+            10  | 11    | 2020 | 1      || "Date        Amount  Balance\n$day.$month.$year      +1        1\n$day.$month.$year      -1        0"
             11  | 10    | 1994 | 100    || "Date        Amount  Balance\n$day.$month.$year    +100      100\n$day.$month.$year    -100        0"
             22  | 12    | 2001 | 5000   || "Date        Amount  Balance\n$day.$month.$year   +5000     5000\n$day.$month.$year   -5000        0"
             31  | 10    | 2022 | 10_000 || "Date        Amount  Balance\n$day.$month.$year  +10000    10000\n$day.$month.$year  -10000        0"
@@ -178,22 +178,28 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             """.stripIndent()
     }
 
-    def "Try to deposit a negative amount"() {
+    def "Try to deposit a non-positive amount: #amount"() {
         when:
-            account.deposit(-100)
+            account.deposit(amount)
 
         then: "exception is thrown"
             def exception = thrown IllegalArgumentException
-            exception.message == "Deposition amount cannot be negative"
+            exception.message == "Deposition amount should be positive"
+
+        where:
+            amount << [0, -1, -100]
     }
 
-    def "Try to withdraw a negative amount"() {
+    def "Try to withdraw a non-positive amount: #amount"() {
         when:
-            account.withdraw(-100)
+            account.withdraw(amount)
 
         then: "exception is thrown"
             def exception = thrown IllegalArgumentException
-            exception.message == "Withdrawal amount cannot be negative"
+            exception.message == "Withdrawal amount should be positive"
+
+        where:
+            amount << [0, -1, -100]
     }
 
     def "Try to withdraw from an empty account"() {
@@ -201,7 +207,8 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             account.withdraw(100)
 
         then: "exception is thrown"
-            thrown InsufficientFundsException
+            def exception = thrown InsufficientFundsException
+            exception.message == "Insufficient funds. Current balance: 0"
     }
 
     def "Try to withdraw more then deposited"() {
@@ -213,7 +220,8 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             account.withdraw(depositAmount + 100)
 
         then: "exception is thrown"
-            thrown InsufficientFundsException
+            def exception = thrown InsufficientFundsException
+            exception.message == "Insufficient funds. Current balance: " + depositAmount
     }
 
     def "Try to withdraw more then deposited and then withdraw all funds"() {
@@ -260,7 +268,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             invocationsCount << [10, 20, 50, 99]
     }
 
-    @Timeout(1)
+    @Timeout(5)
     def "Print statement during multithreaded operations execution - #invocationsCount invocations"() {
         given:
             testClock.set(createInstant(2022, 1, 30))
