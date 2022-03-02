@@ -30,3 +30,7 @@ Before:
 ![before](performance/second/before.PNG)
 After:
 ![after](performance/second/after.PNG)
+
+## Additional requirements
+- ✅ CSV file based account implementation
+- 🔜 statement returned as an HTML table
