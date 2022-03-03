@@ -21,15 +21,20 @@ import java.security.SecureRandom;
 @State(Scope.Benchmark)
 @Warmup(iterations = 5, time = 1)
 @Measurement(iterations = 5, time = 1)
-public class AccountBenchmarkRunner {
+public abstract class AccountBenchmarkRunner {
 
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final AccountFactory<String> ACCOUNT_FACTORY = new StringStatementPrintingInMemoryAccountFactory();
+
+    private final AccountFactory<String> accountFactory;
 
     private Account<String> account;
 
     private int depositedAmount;
     private int withdrawnAmount;
+
+    protected AccountBenchmarkRunner(AccountFactory<String> accountFactory) {
+        this.accountFactory = accountFactory;
+    }
 
     public static void main(String[] args) throws IOException {
         Main.main(new String[] {"-rf", "json"});
@@ -37,13 +42,13 @@ public class AccountBenchmarkRunner {
 
     @Setup(Level.Iteration)
     public void setUpIteration() {
-        account = ACCOUNT_FACTORY.createAccount();
+        account = accountFactory.createAccount();
     }
 
     @Setup(Level.Invocation)
     public void setUpInvocation() {
-        depositedAmount = RANDOM.nextInt(1, 10_000);
-        withdrawnAmount = RANDOM.nextInt(depositedAmount);
+        depositedAmount = RANDOM.nextInt(2, 10_000);
+        withdrawnAmount = RANDOM.nextInt(1, depositedAmount);
     }
 
     @Benchmark
