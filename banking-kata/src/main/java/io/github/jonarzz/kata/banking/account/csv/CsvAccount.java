@@ -13,7 +13,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.stream.Stream;
 
 class CsvAccount<S> extends ValidatedAccount<S> {
 
@@ -73,7 +72,7 @@ class CsvAccount<S> extends ValidatedAccount<S> {
     }
 
     private BalancedDataRows calculateBalancedRows() {
-        try (Stream<String> csvLines = Files.lines(CSV_PATH)) {
+        try (var csvLines = Files.lines(CSV_PATH)) {
             return csvLines.map(CsvRow::fromLine)
                            .reduce(new BalancedDataRows(),
                                    (rows, csvRow) -> rows.append(csvRow.timestamp(), csvRow.amount()),

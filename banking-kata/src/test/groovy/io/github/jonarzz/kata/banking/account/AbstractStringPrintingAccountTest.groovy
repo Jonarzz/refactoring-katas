@@ -184,7 +184,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
 
         then: "exception is thrown"
             def exception = thrown IllegalArgumentException
-            exception.message == "Deposition amount should be positive"
+            exception.message == "Deposition amount should be positive, but was " + amount
 
         where:
             amount << [0, -1, -100]
@@ -196,7 +196,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
 
         then: "exception is thrown"
             def exception = thrown IllegalArgumentException
-            exception.message == "Withdrawal amount should be positive"
+            exception.message == "Withdrawal amount should be positive, but was " + amount
 
         where:
             amount << [0, -1, -100]
@@ -268,7 +268,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             invocationsCount << [10, 20, 50, 99]
     }
 
-    @Timeout(5)
+    @Timeout(2)
     def "Print statement during multithreaded operations execution - #invocationsCount invocations"() {
         given:
             testClock.set(createInstant(2022, 1, 30))
@@ -295,7 +295,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
                            .size() < finalStatementLinesCount
 
         where:
-            invocationsCount << [100, 200, 1000]
+            invocationsCount << [100, 200, 500]
     }
 
     private static void executeTimesN(int nTimes, Consumer<Integer> executable) {

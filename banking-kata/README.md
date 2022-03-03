@@ -1,4 +1,4 @@
-# Banking kata ([source](https://kata-log.rocks/banking-kata))
+# [Banking kata](https://kata-log.rocks/banking-kata)
 ## Description
 Write a class Account that offers the following methods:
 - `void deposit(int)` 
@@ -32,5 +32,57 @@ After:
 ![after](performance/second/after.PNG)
 
 ## Additional requirements
-- ✅ CSV file based account implementation
-- 🔜 statement returned as an HTML table
+
+### CSV file based account implementation ✅
+#### Performance comparison
+![after](performance/inmemory-vs-csv.PNG)
+
+### Statement returned as an HTML table 🔜
+
+Example:
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>24.12.2015</td>
+            <td>+500</td>
+            <td>500</td>
+        </tr>
+        <tr>
+            <td>23.8.2016</td>
+            <td>-100</td>
+            <td>400</td>
+        </tr>
+    </tbody>
+</table>
+
+```html
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>24.12.2015</td>
+            <td>+500</td>
+            <td>500</td>
+        </tr>
+        <tr>
+            <td>23.8.2016</td>
+            <td>-100</td>
+            <td>400</td>
+        </tr>
+    </tbody>
+</table>
+```
