@@ -43,14 +43,11 @@ class CsvAccount<S> extends ValidatedAccount<S> {
 
     @Override
     protected void withdraw(PositiveAmount positiveAmount) throws InsufficientFundsException {
-        BalancedDataRows balancedDataRows;
-        synchronized (this) {
-            balancedDataRows = calculateBalancedRows();
-        }
-        var balance = balancedDataRows.balance();
+        var balance = calculateBalancedRows().balance();
         var amount = positiveAmount.value();
         if (balance - amount < 0) {
-            throw new InsufficientFundsException(balance);
+            // TODO thread safety needs fixing - this exception is rarely thrown while running the benchmark
+            throw new InsufficientFundsException(balance, amount);
         }
         appendToCsv(-amount);
     }
