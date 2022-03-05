@@ -1,7 +1,5 @@
-package io.github.jonarzz.kata.banking.account.memory;
+package io.github.jonarzz.kata.banking.account;
 
-import io.github.jonarzz.kata.banking.account.Account;
-import io.github.jonarzz.kata.banking.account.AccountFactory;
 import org.openjdk.jmh.Main;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Fork;

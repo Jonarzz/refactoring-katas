@@ -42,7 +42,7 @@ class InMemoryAccount<S> extends ValidatedAccount<S> {
             balance -= amount;
             if (balance < 0) {
                 balance = balanceBefore;
-                throw new InsufficientFundsException(balance);
+                throw new InsufficientFundsException(balance, amount);
             }
             operations.add(AccountOperation.now(-amount));
         }

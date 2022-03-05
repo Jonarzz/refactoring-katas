@@ -52,24 +52,26 @@ abstract class AbstractValidatedAccountTest extends Specification {
 
     def "Try to withdraw from an empty account"() {
         when:
-            account.withdraw(100)
+            def amount = 100
+            account.withdraw(amount)
 
         then: "exception is thrown"
             def exception = thrown InsufficientFundsException
-            exception.message == "Insufficient funds. Current balance: 0"
+            exception.message == "Insufficient funds. Current balance: 0, requested amount: " + amount
     }
 
     def "Try to withdraw more then deposited"() {
         given:
             def depositAmount = 100
+            def withdrawalAmount = depositAmount + 100
             account.deposit(depositAmount)
 
         when:
-            account.withdraw(depositAmount + 100)
+            account.withdraw(withdrawalAmount)
 
         then: "exception is thrown"
             def exception = thrown InsufficientFundsException
-            exception.message == "Insufficient funds. Current balance: " + depositAmount
+            exception.message == "Insufficient funds. Current balance: " + depositAmount + ", requested amount: " + withdrawalAmount
     }
 
     @PackageScope

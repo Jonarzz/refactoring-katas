@@ -37,7 +37,7 @@ After:
 #### Performance comparison
 ![after](performance/inmemory-vs-csv.PNG)
 
-### Statement returned as an HTML table 🔜
+### Statement returned as an HTML table ✅
 
 Example:
 
@@ -86,3 +86,6 @@ Example:
     </tbody>
 </table>
 ```
+
+#### Performance
+![after](performance/html-printing.PNG)
