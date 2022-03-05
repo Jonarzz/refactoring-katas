@@ -1,10 +1,10 @@
-package io.github.jonarzz.kata.banking.account.statement.column;
+package io.github.jonarzz.kata.banking.account.statement.printer.string;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
 
-public class AlignedColumn {
+class AlignedColumn {
 
     private List<String> alignedValues;
 
@@ -12,7 +12,7 @@ public class AlignedColumn {
         this.alignedValues = alignedValues;
     }
 
-    public Iterator<String> valueIterator() {
+    Iterator<String> valueIterator() {
         return alignedValues.iterator();
     }
 

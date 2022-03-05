@@ -1,32 +1,11 @@
 package io.github.jonarzz.kata.banking.account
 
-import com.mercateo.test.clock.TestClock
-import io.github.jonarzz.kata.banking.account.Account
-import io.github.jonarzz.kata.banking.account.InsufficientFundsException
-import spock.lang.Specification
+
 import spock.lang.Timeout
 
-import java.time.Clock
-import java.time.Instant
-import java.time.LocalDate
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
-import java.util.function.Consumer
 
-import static java.time.ZoneId.systemDefault
-
-abstract class AbstractStringPrintingAccountTest extends Specification {
-
-    TestClock testClock
-    Account<String> account
-
-    def setup() {
-        testClock = createTestClock()
-        account = createAccount(testClock)
-    }
-
-    protected abstract Account<String> createAccount(Clock clock);
+abstract class AbstractStringPrintingAccountTest extends AbstractValidatedAccountTest {
 
     def "Kata acceptance test"() {
         when: "deposit"
@@ -178,52 +157,6 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             """.stripIndent()
     }
 
-    def "Try to deposit a non-positive amount: #amount"() {
-        when:
-            account.deposit(amount)
-
-        then: "exception is thrown"
-            def exception = thrown IllegalArgumentException
-            exception.message == "Deposition amount should be positive, but was " + amount
-
-        where:
-            amount << [0, -1, -100]
-    }
-
-    def "Try to withdraw a non-positive amount: #amount"() {
-        when:
-            account.withdraw(amount)
-
-        then: "exception is thrown"
-            def exception = thrown IllegalArgumentException
-            exception.message == "Withdrawal amount should be positive, but was " + amount
-
-        where:
-            amount << [0, -1, -100]
-    }
-
-    def "Try to withdraw from an empty account"() {
-        when:
-            account.withdraw(100)
-
-        then: "exception is thrown"
-            def exception = thrown InsufficientFundsException
-            exception.message == "Insufficient funds. Current balance: 0"
-    }
-
-    def "Try to withdraw more then deposited"() {
-        given:
-            def depositAmount = 100
-            account.deposit(depositAmount)
-
-        when:
-            account.withdraw(depositAmount + 100)
-
-        then: "exception is thrown"
-            def exception = thrown InsufficientFundsException
-            exception.message == "Insufficient funds. Current balance: " + depositAmount
-    }
-
     def "Try to withdraw more then deposited and then withdraw all funds"() {
         given:
             testClock.set(createInstant(2020, 10, 15))
@@ -268,7 +201,7 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
             invocationsCount << [10, 20, 50, 99]
     }
 
-    @Timeout(2)
+    @Timeout(3)
     def "Print statement during multithreaded operations execution - #invocationsCount invocations"() {
         given:
             testClock.set(createInstant(2022, 1, 30))
@@ -297,30 +230,5 @@ abstract class AbstractStringPrintingAccountTest extends Specification {
         where:
             invocationsCount << [100, 200, 500]
     }
-
-    private static void executeTimesN(int nTimes, Consumer<Integer> executable) {
-        def threadPool = Executors.newFixedThreadPool(Math.min(4, nTimes))
-        def latch = new CountDownLatch(nTimes)
-        for (def i = 1; i <= nTimes; i++) {
-            def value = i
-            threadPool.execute(() -> {
-                executable.accept(value)
-                latch.countDown()
-            })
-        }
-        latch.await()
-        threadPool.shutdownNow()
-    }
-
-    private static TestClock createTestClock() {
-        return TestClock.fixed(Instant.now(), systemDefault());
-    }
-
-    private static Instant createInstant(int year, int month, int day) {
-        return LocalDate.of(year, month, day)
-                .atStartOfDay(systemDefault())
-                .toInstant()
-    }
-
 
 }

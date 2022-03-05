@@ -1,8 +1,8 @@
 package io.github.jonarzz.kata.banking.account.csv;
 
-import static io.github.jonarzz.kata.banking.account.statement.DataRow.fromOperation;
+import static io.github.jonarzz.kata.banking.account.statement.OperationRow.create;
 
-import io.github.jonarzz.kata.banking.account.statement.DataRow;
+import io.github.jonarzz.kata.banking.account.statement.Row;
 
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
@@ -11,16 +11,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 class BalancedDataRows {
 
-    private List<DataRow> dataRows = new ArrayList<>();
+    private List<Row> dataRows = new ArrayList<>();
     private AtomicLong balance = new AtomicLong();
 
     BalancedDataRows append(TemporalAccessor timestamp, int amount) {
         var newBalance = balance.addAndGet(amount);
-        dataRows.add(fromOperation(timestamp, amount, newBalance));
+        dataRows.add(create(timestamp, amount, newBalance));
         return this;
     }
 
-    List<DataRow> rows() {
+    List<Row> rows() {
         return dataRows;
     }
 
