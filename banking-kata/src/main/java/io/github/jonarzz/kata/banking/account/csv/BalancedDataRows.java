@@ -8,6 +8,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 class BalancedDataRows {
 
@@ -21,7 +22,7 @@ class BalancedDataRows {
     }
 
     List<Row> rows() {
-        return dataRows;
+        return List.copyOf(dataRows);
     }
 
     long balance() {
@@ -30,8 +31,11 @@ class BalancedDataRows {
 
     static BalancedDataRows merge(BalancedDataRows first, BalancedDataRows second) {
         var merged = new BalancedDataRows();
-        merged.dataRows.addAll(first.dataRows);
-        merged.dataRows.addAll(second.dataRows);
+        Stream.of(first, second)
+              .forEach(element -> {
+                  merged.dataRows.addAll(element.dataRows);
+                  merged.balance.addAndGet(element.balance());
+              });
         return merged;
     }
 

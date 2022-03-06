@@ -60,7 +60,7 @@ abstract class AbstractValidatedAccountTest extends Specification {
             exception.message == "Insufficient funds. Current balance: 0, requested amount: " + amount
     }
 
-    def "Try to withdraw more then deposited"() {
+    def "Try to withdraw more then has been deposited"() {
         given:
             def depositAmount = 100
             def withdrawalAmount = depositAmount + 100
@@ -98,8 +98,8 @@ abstract class AbstractValidatedAccountTest extends Specification {
     @PackageScope
     static Instant createInstant(int year, int month, int day) {
         return LocalDate.of(year, month, day)
-                .atStartOfDay(systemDefault())
-                .toInstant()
+                        .atStartOfDay(systemDefault())
+                        .toInstant()
     }
 
 }

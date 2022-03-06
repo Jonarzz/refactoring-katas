@@ -1,11 +1,15 @@
 package io.github.jonarzz.kata.banking.account;
 
-import io.github.jonarzz.kata.banking.account.memory.HtmlStatementPrintingInMemoryAccountFactory;
+import static io.github.jonarzz.kata.banking.account.factory.StatementType.HTML;
+import static io.github.jonarzz.kata.banking.account.factory.StorageType.MEMORY;
+
+import io.github.jonarzz.kata.banking.account.factory.AccountFactoryProvider;
 
 public class HtmlPrintingInMemoryAccountBenchmark extends AccountBenchmarkRunner {
 
     public HtmlPrintingInMemoryAccountBenchmark() {
-        super(new HtmlStatementPrintingInMemoryAccountFactory());
+        super(AccountFactoryProvider.storedIn(MEMORY)
+                                    .printing(HTML));
     }
 
 }
