@@ -1,8 +1,9 @@
 package io.github.jonarzz.kata.banking.account.statement.printer.string;
 
-import io.github.jonarzz.kata.banking.account.statement.Table;
+import io.github.jonarzz.kata.banking.account.statement.NonEmptyTable;
 import io.github.jonarzz.kata.banking.account.statement.printer.StatementPrinter;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -12,20 +13,16 @@ public class StringStatementPrinter implements StatementPrinter<String> {
     private static final String COLUMN_SEPARATOR = "  ";
 
     @Override
-    public String print(Table table) {
-        var rows = table.getRows();
-        if (rows.isEmpty()) {
-            throw new IllegalStateException("Table should have at least 1 row");
-        }
+    public String print(NonEmptyTable table) {
+        var rows = new ArrayDeque<>(table.getRows());
         List<Column> columns = new ArrayList<>();
-        for (var cell : rows.get(0).cells()) {
+        for (var cell : rows.removeFirst().cells()) {
             var column = new Column();
             column.addValue(cell);
             columns.add(column);
         }
-        for (int rowIndex = 1; rowIndex < rows.size(); rowIndex++) {
-            var rowCells = rows.get(rowIndex)
-                               .cells();
+        for (var row : rows) {
+            var rowCells = row.cells();
             for (int cellIndex = 0; cellIndex < rowCells.length; cellIndex++) {
                 columns.get(cellIndex)
                        .addValue(rowCells[cellIndex]);
@@ -41,7 +38,6 @@ public class StringStatementPrinter implements StatementPrinter<String> {
                                     .map(AlignedColumn::valueIterator)
                                     .toList();
         List<String> alignedRows = new ArrayList<>();
-        // factory methods are row-based, so each column has the same number of values
         while (firstIterator.hasNext()) {
             List<String> cells = new ArrayList<>();
             cells.add(firstIterator.next());
@@ -50,6 +46,7 @@ public class StringStatementPrinter implements StatementPrinter<String> {
                           .forEach(cells::add);
             alignedRows.add(String.join(COLUMN_SEPARATOR, cells));
         }
+        // using StringBuilder results in the same performance here, joining lists seems more natural
         return String.join("\n", alignedRows);
     }
 

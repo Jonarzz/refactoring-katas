@@ -3,7 +3,7 @@ package io.github.jonarzz.kata.banking.account.csv;
 import static java.nio.file.StandardOpenOption.APPEND;
 
 import io.github.jonarzz.kata.banking.account.InsufficientFundsException;
-import io.github.jonarzz.kata.banking.account.statement.TableFactory;
+import io.github.jonarzz.kata.banking.account.statement.NonEmptyTable;
 import io.github.jonarzz.kata.banking.account.statement.printer.StatementPrinter;
 import io.github.jonarzz.kata.banking.account.validation.PositiveAmount;
 import io.github.jonarzz.kata.banking.account.validation.ValidatedAccount;
@@ -21,7 +21,6 @@ class CsvAccount<S> extends ValidatedAccount<S> {
     // may be implemented so that path is passed down from the factory
     private static final Path CSV_PATH = Path.of(System.getProperty("java.io.tmpdir"), "account.csv");
 
-    private final TableFactory tableFactory = new TableFactory();
     private final StatementPrinter<S> statementPrinter;
 
     CsvAccount(StatementPrinter<S> statementPrinter) {
@@ -55,7 +54,7 @@ class CsvAccount<S> extends ValidatedAccount<S> {
     @Override
     public S printStatement() {
         var dataRows = calculateBalancedRows().rows();
-        var table = tableFactory.operationsTableWithHeader(dataRows);
+        var table = NonEmptyTable.operationsTableWithHeader(dataRows);
         return statementPrinter.print(table);
     }
 

@@ -2,30 +2,30 @@ package io.github.jonarzz.kata.banking.account.statement.printer.html;
 
 class HtmlTableBuilder {
 
-    private StringBuilder builder = new StringBuilder(Tags.TABLE.start);
+    private StringBuilder builder = new StringBuilder(Tag.TABLE.start);
 
     void header(Runnable wrapped) {
-        wrap(Tags.THEAD, wrapped);
+        wrap(Tag.THEAD, wrapped);
     }
 
     void body(Runnable wrapped) {
-        wrap(Tags.TBODY, wrapped);
+        wrap(Tag.TBODY, wrapped);
     }
 
     void row(Runnable wrapped) {
-        wrap(Tags.TR, wrapped);
+        wrap(Tag.TR, wrapped);
     }
 
     void headerCell(String value) {
-        wrap(Tags.TH, value);
+        wrap(Tag.TH, value);
     }
 
     void bodyCell(String value) {
-        wrap(Tags.TD, value);
+        wrap(Tag.TD, value);
     }
 
     String build() {
-        return builder.append(Tags.TABLE.end)
+        return builder.append(Tag.TABLE.end)
                       .toString();
     }
 
@@ -41,23 +41,19 @@ class HtmlTableBuilder {
         builder.append(tag.end);
     }
 
-    private static class Tags {
+    private enum Tag {
 
-        private static final Tag TABLE = new Tag("table");
-        private static final Tag TR = new Tag("tr");
-        private static final Tag THEAD = new Tag("thead");
-        private static final Tag TH = new Tag("th");
-        private static final Tag TBODY = new Tag("tbody");
-        private static final Tag TD = new Tag("td");
-
-    }
-
-    private static class Tag {
+        TABLE("table"),
+        TR("tr"),
+        THEAD("thead"),
+        TH("th"),
+        TBODY("tbody"),
+        TD("td");
 
         private final String start;
         private final String end;
 
-        private Tag(String name) {
+        Tag(String name) {
             start = "<" + name + ">";
             end = "</" + name + ">";
         }

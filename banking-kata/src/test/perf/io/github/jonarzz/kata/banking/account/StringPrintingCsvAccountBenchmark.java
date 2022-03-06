@@ -1,11 +1,15 @@
 package io.github.jonarzz.kata.banking.account;
 
-import io.github.jonarzz.kata.banking.account.csv.StringStatementPrintingCsvAccountFactory;
+import static io.github.jonarzz.kata.banking.account.factory.StatementType.STRING;
+import static io.github.jonarzz.kata.banking.account.factory.StorageType.CSV;
+
+import io.github.jonarzz.kata.banking.account.factory.AccountFactoryProvider;
 
 public class StringPrintingCsvAccountBenchmark extends AccountBenchmarkRunner {
 
     public StringPrintingCsvAccountBenchmark() {
-        super(new StringStatementPrintingCsvAccountFactory());
+        super(AccountFactoryProvider.storedIn(CSV)
+                                    .printing(STRING));
     }
 
 }

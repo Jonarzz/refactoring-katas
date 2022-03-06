@@ -30,7 +30,7 @@ public abstract class AccountBenchmarkRunner {
     private int depositedAmount;
     private int withdrawnAmount;
 
-    protected AccountBenchmarkRunner(AccountFactory<String> accountFactory) {
+    AccountBenchmarkRunner(AccountFactory<String> accountFactory) {
         this.accountFactory = accountFactory;
     }
 

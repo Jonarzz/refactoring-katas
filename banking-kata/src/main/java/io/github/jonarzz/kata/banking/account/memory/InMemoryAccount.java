@@ -2,9 +2,9 @@ package io.github.jonarzz.kata.banking.account.memory;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import io.github.jonarzz.kata.banking.account.InsufficientFundsException;
+import io.github.jonarzz.kata.banking.account.statement.NonEmptyTable;
 import io.github.jonarzz.kata.banking.account.statement.OperationRow;
 import io.github.jonarzz.kata.banking.account.statement.Row;
-import io.github.jonarzz.kata.banking.account.statement.TableFactory;
 import io.github.jonarzz.kata.banking.account.statement.printer.StatementPrinter;
 import io.github.jonarzz.kata.banking.account.validation.PositiveAmount;
 import io.github.jonarzz.kata.banking.account.validation.ValidatedAccount;
@@ -14,7 +14,6 @@ import java.util.List;
 
 class InMemoryAccount<S> extends ValidatedAccount<S> {
 
-    private final TableFactory tableFactory = new TableFactory();
     private final StatementPrinter<S> statementPrinter;
     @GuardedBy("this")
     private final List<AccountOperation> operations = new ArrayList<>();
@@ -64,7 +63,7 @@ class InMemoryAccount<S> extends ValidatedAccount<S> {
             accountBalance += amount;
             rows.add(OperationRow.create(timestamp, amount, accountBalance));
         }
-        var table = tableFactory.operationsTableWithHeader(rows);
+        var table = NonEmptyTable.operationsTableWithHeader(rows);
         return statementPrinter.print(table);
     }
 

@@ -218,9 +218,9 @@ abstract class AbstractStringPrintingAccountTest extends AbstractValidatedAccoun
 
         then:
             def finalStatementLinesCount = account.printStatement()
-                    .lines()
-                    .toList()
-                    .size()
+                                                       .lines()
+                                                       .toList()
+                                                       .size()
             finalStatementLinesCount == 1 + 2 * invocationsCount // header + N deposits + N withdrawals
             statementHolder.get()
                            .lines()

@@ -1,11 +1,15 @@
 package io.github.jonarzz.kata.banking.account;
 
-import io.github.jonarzz.kata.banking.account.csv.HtmlStatementPrintingCsvAccountFactory;
+import static io.github.jonarzz.kata.banking.account.factory.StatementType.HTML;
+import static io.github.jonarzz.kata.banking.account.factory.StorageType.CSV;
+
+import io.github.jonarzz.kata.banking.account.factory.AccountFactoryProvider;
 
 public class HtmlPrintingCsvAccountBenchmark extends AccountBenchmarkRunner {
 
     public HtmlPrintingCsvAccountBenchmark() {
-        super(new HtmlStatementPrintingCsvAccountFactory());
+        super(AccountFactoryProvider.storedIn(CSV)
+                                    .printing(HTML));
     }
 
 }
