@@ -10,20 +10,20 @@ public class BowlingSteps {
 
     private Game game;
 
-    @Given("game is started")
+    @Given("new game is started")
     public void gameIsStarted() {
         game = new SimpleGame();
     }
 
-    @When("{int} pins knocked down in the first/second throw")
+    @When("{int} pin(s) knocked down in the first/second/next roll")
     public void knockPinsDown(int knockedDownPins) {
         game.roll(knockedDownPins);
     }
 
-    @When("{int} pins knocked down {int} times")
-    public void knockPinsDownMultipleTimes(int pinsPerThrow, int throwsCount) {
-        for (int i = 0; i < throwsCount; i++) {
-            knockPinsDown(pinsPerThrow);
+    @When("{int} pin(s) knocked down {int} times")
+    public void knockPinsDownMultipleTimes(int pinsPerRoll, int rollsCount) {
+        for (int i = 0; i < rollsCount; i++) {
+            knockPinsDown(pinsPerRoll);
         }
     }
 
