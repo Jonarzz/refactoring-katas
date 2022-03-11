@@ -6,7 +6,13 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import java.security.SecureRandom;
+
 public class BowlingSteps {
+
+    private static final int FRAMES_PER_GAME = 10;
+
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private Game game;
 
@@ -18,6 +24,19 @@ public class BowlingSteps {
     @When("{int} pin(s) knocked down in the first/second/next roll")
     public void knockPinsDown(int knockedDownPins) {
         game.roll(knockedDownPins);
+    }
+
+    @When("{int} pins knocked down in standard 10 frames")
+    public void playFullGameWithSamePointsPerFrame(int pinsPerFrame) {
+        var upperBound = pinsPerFrame + 1;
+        var firstRollPinsCount = RANDOM.nextInt(0, upperBound);
+        var secondRollPinsCount = firstRollPinsCount < pinsPerFrame
+                                  ? RANDOM.nextInt(firstRollPinsCount, upperBound)
+                                  : 0;
+        for (int i = 0; i < FRAMES_PER_GAME; i++) {
+            game.roll(firstRollPinsCount);
+            game.roll(secondRollPinsCount);
+        }
     }
 
     @When("{int} pin(s) knocked down {int} times")
