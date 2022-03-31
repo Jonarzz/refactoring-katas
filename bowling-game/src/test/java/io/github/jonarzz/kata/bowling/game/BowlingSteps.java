@@ -30,9 +30,7 @@ public class BowlingSteps {
     public void playFullGameWithSamePointsPerFrame(int pinsPerFrame) {
         var upperBound = pinsPerFrame + 1;
         var firstRollPinsCount = RANDOM.nextInt(0, upperBound);
-        var secondRollPinsCount = firstRollPinsCount < pinsPerFrame
-                                  ? RANDOM.nextInt(firstRollPinsCount, upperBound)
-                                  : 0;
+        var secondRollPinsCount = pinsPerFrame - firstRollPinsCount;
         for (int i = 0; i < FRAMES_PER_GAME; i++) {
             game.roll(firstRollPinsCount);
             game.roll(secondRollPinsCount);

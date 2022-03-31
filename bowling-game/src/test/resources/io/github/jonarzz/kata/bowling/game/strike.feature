@@ -3,12 +3,10 @@ Feature: Strike
   A strike is when the player knocks down all 10 pins on their first roll within frame.
   The frame is then completed with a single roll.
 
-  Background:
-    Given new game is started
-
   Rule: Bonus for the frame with a strike is the value of the next two rolls.
 
     Scenario Outline: Second roll is not a strike
+      Given new game is started
       When 10 pins knocked down in the first roll
       And <second_roll_pins> pins knocked down in the second roll
       And <third_roll_pins> pins knocked down in the next roll
@@ -25,11 +23,12 @@ Feature: Strike
         | 5                | 5               | 30    |
 
     Scenario Outline: Second roll is a strike
+      Given new game is started
       When 10 pins knocked down in the first roll
       And 10 pins knocked down in the second roll
       And <third_roll_pins> pins knocked down in the next roll
       And <fourth_roll_pins> pins knocked down in the next roll
-      And 0 pins knocked down 17 times
+      And 0 pins knocked down 16 times
       Then score is <score>
 
       Examples:
@@ -38,7 +37,7 @@ Feature: Strike
         | 1               | 0                | 33    |
         | 1               | 1                | 35    |
         | 2               | 2                | 40    |
-        | 5               | 5                | 45    |
+        | 5               | 5                | 55    |
         | 0               | 9                | 48    |
         | 0               | 10               | 50    |
         | 9               | 0                | 57    |
@@ -49,7 +48,8 @@ Feature: Strike
   Rule: No bonus points for strike within the last frame.
 
     Scenario Outline: No bonus points for strike within the last frame.
-      Given 0 pins knocked down 18 times
+      Given new game is started
+      And 0 pins knocked down 18 times
       When <first_roll_pins> pins knocked down in the first roll
       And <second_roll_pins> pins knocked down in the second roll
       And <third_roll_pins> pins knocked down in the next roll

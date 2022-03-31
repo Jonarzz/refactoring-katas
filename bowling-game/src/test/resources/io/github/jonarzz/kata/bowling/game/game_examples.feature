@@ -1,9 +1,7 @@
 Feature: Various game examples
 
-  Background:
-    Given new game is started
-
   Scenario: No spare/strike game
+    Given new game is started
     # frame 1
     When 3 pins knocked down in the first roll
     And 2 pins knocked down in the second roll
@@ -37,6 +35,7 @@ Feature: Various game examples
     Then score is 54
 
   Scenario: Highest possible score without neither strike nor spare
+    Given new game is started
     # frame 1
     When 1 pins knocked down in the first roll
     * 8 pins knocked down in the second roll
