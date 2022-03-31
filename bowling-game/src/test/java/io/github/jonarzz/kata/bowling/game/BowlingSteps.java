@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.github.jonarzz.kata.bowling.game.frame.DefaultGame;
 
 import java.security.SecureRandom;
 
@@ -18,7 +19,7 @@ public class BowlingSteps {
 
     @Given("new game is started")
     public void gameIsStarted() {
-        game = new SimpleGame();
+        game = new DefaultGame();
     }
 
     @When("{int} pin(s) knocked down in the first/second/next roll")

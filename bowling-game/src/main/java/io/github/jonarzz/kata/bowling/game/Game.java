@@ -4,6 +4,6 @@ public interface Game {
 
     void roll(int knockedDownPins);
 
-    int score();
+    int score() throws IncompleteGameException;
 
 }
