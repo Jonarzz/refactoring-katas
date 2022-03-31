@@ -2,10 +2,8 @@ Feature: Spare
 
   A spare is when the player knocks down all 10 pins in two rolls.
 
-  Background:
-    Given new game is started
-
   Scenario Outline: Bonus for the frame with a spare is the number of pins knocked down by the first roll in the next frame.
+    Given new game is started
     When <first_roll_pins> pins knocked down in the first roll
     And <second_roll_pins> pins knocked down in the second roll
     And <third_roll_pins> pins knocked down in the next roll
@@ -23,7 +21,8 @@ Feature: Spare
   Rule: No bonus points for spare within the last frame.
 
     Scenario Outline: No bonus points for spare within the last frame.
-      Given 0 pins knocked down 18 times
+      Given new game is started
+      And 0 pins knocked down 18 times
       When <first_roll_pins> pins knocked down in the first roll
       And <second_roll_pins> pins knocked down in the second roll
       And <third_roll_pins> pins knocked down in the next roll
