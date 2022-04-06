@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.github.jonarzz.kata.bowling.game.frame.DefaultGame;
 
 import java.security.SecureRandom;
 

@@ -1,8 +1,8 @@
 package io.github.jonarzz.kata.bowling.game.frame;
 
-class Roll {
+import static io.github.jonarzz.kata.bowling.game.frame.FrameFactory.MAX_PINS_PER_FRAME;
 
-    static final int MAX_PINS = 10;
+public class Roll {
 
     private int number;
     private int knockedDownPins;
@@ -12,7 +12,7 @@ class Roll {
         this.knockedDownPins = knockedDownPins;
     }
 
-    static RollCreator number(int number) {
+    public static RollCreator number(int number) {
         return new RollCreator(number);
     }
 
@@ -25,10 +25,10 @@ class Roll {
     }
 
     boolean isStrike() {
-        return MAX_PINS == knockedDownPins;
+        return MAX_PINS_PER_FRAME == knockedDownPins;
     }
 
-    static class RollCreator {
+    public static class RollCreator {
 
         private int rollNumber;
 
@@ -36,9 +36,9 @@ class Roll {
             this.rollNumber = rollNumber;
         }
 
-        Roll knockDown(int pins) {
-            if (pins > MAX_PINS) {
-                throw new IllegalArgumentException("Max pins that can be knocked down in one roll is " + MAX_PINS);
+        public Roll knockDown(int pins) {
+            if (pins > MAX_PINS_PER_FRAME) {
+                throw new IllegalArgumentException("Max pins that can be knocked down in one roll is " + MAX_PINS_PER_FRAME);
             }
             return new Roll(rollNumber, pins);
         }

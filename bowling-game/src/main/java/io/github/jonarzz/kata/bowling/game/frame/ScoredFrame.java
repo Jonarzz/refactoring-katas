@@ -19,12 +19,12 @@ abstract class ScoredFrame implements Frame {
 
     @Override
     public final Roll firstRoll() {
-        return firstElement(rolls);
+        return firstElementFrom(rolls);
     }
 
     @Override
     public final Optional<Roll> secondRoll() {
-        return secondElement(rolls);
+        return secondElementFrom(rolls);
     }
 
     abstract boolean shouldAccept(Roll roll);
@@ -35,11 +35,11 @@ abstract class ScoredFrame implements Frame {
                     .sum();
     }
 
-    static <T> T firstElement(List<T> elements) {
+    static <T> T firstElementFrom(List<T> elements) {
         return elements.get(0);
     }
 
-    static <T> Optional<T> secondElement(List<T> elements) {
+    static <T> Optional<T> secondElementFrom(List<T> elements) {
         return elements.stream()
                        .skip(1)
                        .findFirst();
