@@ -13,6 +13,7 @@
     <modules>
         <module>banking-kata</module>
         <module>bowling-game</module>
+        <module>score-keeper</module>
         <module>project-analyzer</module>
     </modules>
 
@@ -78,13 +79,20 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.github.jonarzz</groupId>
-                <artifactId>banking-kata</artifactId>
-                <version>${project.version}</version>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>${junit.jupiter.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
                 <version>${junit.jupiter.version}</version>
                 <scope>test</scope>
             </dependency>
