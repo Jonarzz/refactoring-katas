@@ -23,3 +23,7 @@ Write a class `ScoreKeeper` which offers following methods:
 
 ## Rules
 The returned String always has seven characters. An example would be: `000:000`.
+
+## Performance
+_Generated using [this page](https://jmh.morethan.io/)_.
+![after](performance/single-vs-multithreaded.PNG)
