@@ -1,11 +1,14 @@
 package io.github.jonarzz.kata.score.keeper;
 
+import static java.util.Collections.shuffle;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.params.provider.Arguments.of;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -13,6 +16,12 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -23,7 +32,7 @@ class ScoreKeeperTest {
 
     @BeforeEach
     void setUp() {
-        scoreKeeper = new ScoreKeeperFacade();
+        scoreKeeper = SimpleScoreKeeper.withMaxDigits(3);
     }
 
     @Test
@@ -215,6 +224,48 @@ class ScoreKeeperTest {
         scorePoints.run();
         assertThat(scoreKeeper.getScore())
                 .isEqualTo(expectedScore);
+    }
+
+    @RepeatedTest(50)
+    @DisplayName("Multithreaded score modification")
+    void multithreadedScoreModification() throws InterruptedException {
+        var threadPool = Executors.newFixedThreadPool(8);
+        var runner = new ScoringRunner(threadPool, 150);
+
+        var aTeamLatch = runner.run(scoreKeeper::scoreTeamA1, scoreKeeper::scoreTeamA2, scoreKeeper::scoreTeamA3);
+        var bTeamLatch = runner.run(scoreKeeper::scoreTeamB1, scoreKeeper::scoreTeamB2, scoreKeeper::scoreTeamB3);
+        aTeamLatch.await();
+        bTeamLatch.await();
+        threadPool.shutdownNow();
+
+        assertThat(scoreKeeper.getScore())
+                // 150 * (1 + 2 + 3)
+                .isEqualTo("900:900");
+    }
+
+    private static class ScoringRunner {
+
+        private ExecutorService threadPool;
+        private int nTimes;
+
+        ScoringRunner(ExecutorService threadPool, int nTimes) {
+            this.threadPool = threadPool;
+            this.nTimes = nTimes;
+        }
+
+        CountDownLatch run(Runnable... scoreModifications) {
+            var modifications = Collections.nCopies(nTimes, Arrays.asList(scoreModifications))
+                                           .stream()
+                                           .flatMap(Collection::stream)
+                                           .collect(toList());
+            var latch = new CountDownLatch(modifications.size());
+            shuffle(modifications);
+            modifications.forEach(modification -> threadPool.submit(() -> {
+                modification.run();
+                latch.countDown();
+            }));
+            return latch;
+        }
     }
 
 }
