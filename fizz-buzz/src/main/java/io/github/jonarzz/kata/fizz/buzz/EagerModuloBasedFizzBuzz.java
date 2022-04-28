@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.fizz.buzz;
 
-class EagerRuleBasedFizzBuzz implements FizzBuzz {
+class EagerModuloBasedFizzBuzz implements FizzBuzz {
 
     @Override
     public String fizzbuzz(int number) {

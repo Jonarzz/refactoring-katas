@@ -22,18 +22,22 @@ import java.util.stream.IntStream;
 
 @Fork(1)
 @State(Scope.Benchmark)
-@Warmup(iterations = 5, time = 1)
-@Measurement(iterations = 3, time = 3)
+@Warmup(iterations = 3, time = 1)
+@Measurement(iterations = 3, time = 1)
 public class FizzBuzzBenchmarkRunner {
 
     @Param({
             "io.github.jonarzz.kata.fizz.buzz.policy.PolicyBasedFizzBuzz",
-            "io.github.jonarzz.kata.fizz.buzz.StringConcatenatingFizzBuzz",
-            "io.github.jonarzz.kata.fizz.buzz.RuleBasedFizzBuzz",
-            "io.github.jonarzz.kata.fizz.buzz.EagerRuleBasedFizzBuzz",
-            "io.github.jonarzz.kata.fizz.buzz.NestedRuleBasedFizzBuzz",
-            "io.github.jonarzz.kata.fizz.buzz.InvertedNestedRuleBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.DivisibilityRuleBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.DumbArrayBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.DumbListBasedFizzBuzz",
             "io.github.jonarzz.kata.fizz.buzz.DumbMapBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.EagerModuloBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.InvertedNestedModuloBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.ModuloBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.NestedModuloBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.SimpleModuloBasedFizzBuzz",
+            "io.github.jonarzz.kata.fizz.buzz.StringConcatenatingFizzBuzz"
     })
     private String fizzBuzzClassName;
 

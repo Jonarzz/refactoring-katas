@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.fizz.buzz;
 
-class InvertedNestedRuleBasedFizzBuzz implements FizzBuzz {
+class InvertedNestedModuloBasedFizzBuzz implements FizzBuzz {
 
     @Override
     public String fizzbuzz(int number) {

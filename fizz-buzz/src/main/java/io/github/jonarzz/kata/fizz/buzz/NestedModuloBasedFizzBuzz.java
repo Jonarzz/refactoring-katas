@@ -1,13 +1,13 @@
 package io.github.jonarzz.kata.fizz.buzz;
 
-class RuleBasedFizzBuzz implements FizzBuzz {
+class NestedModuloBasedFizzBuzz implements FizzBuzz {
 
     @Override
     public String fizzbuzz(int number) {
-        if (number % 3 == 0 && number % 5 == 0) {
-            return "FizzBuzz";
-        }
         if (number % 3 == 0) {
+            if (number % 5 == 0) {
+                return "FizzBuzz";
+            }
             return "Fizz";
         }
         if (number % 5 == 0) {

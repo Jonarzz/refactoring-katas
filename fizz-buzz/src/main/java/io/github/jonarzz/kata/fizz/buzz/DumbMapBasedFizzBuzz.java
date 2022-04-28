@@ -18,7 +18,7 @@ class DumbMapBasedFizzBuzz implements FizzBuzz {
     }
 
     DumbMapBasedFizzBuzz(int fromInclusive, int toInclusive) {
-        var notDumbFizzBuzz = new StringConcatenatingFizzBuzz();
+        var notDumbFizzBuzz = new ModuloBasedFizzBuzz();
         inputToOutput = IntStream.rangeClosed(fromInclusive, toInclusive)
                                  .boxed()
                                  .collect(toMap(identity(),
