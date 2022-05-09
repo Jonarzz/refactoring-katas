@@ -15,6 +15,11 @@
         <module>bowling-game</module>
         <module>score-keeper</module>
         <module>fizz-buzz</module>
+        <module>string-calculator</module>
+        <module>unusual-spending</module>
+        <module>manhattan-distance</module>
+        <module>the-lift</module>
+        <module>social-network</module>
         <module>project-analyzer</module>
     </modules>
 
