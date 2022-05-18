@@ -1,12 +1,19 @@
 package io.github.jonarzz.kata.string.calculator
 
+
 import spock.lang.Shared
 import spock.lang.Specification
 
-class StringCalculatorTest extends Specification {
+abstract class BaseStringCalculatorTest extends Specification {
 
     @Shared
-    def calculator = new SplitStreamStringCalculator()
+    StringCalculator calculator
+
+    def setupSpec() {
+        calculator = createTestedCalculator();
+    }
+
+    abstract StringCalculator createTestedCalculator()
 
     def "Empty string"() {
         when:
@@ -103,4 +110,21 @@ class StringCalculatorTest extends Specification {
             input << ["1,\n", "1\n,", "1,\n,\n", ",", "\n", ",\n1", "1,2,3\n,", "1,2,3,\n", "1,2\n,3\n,4"]
     }
 
+    def "Various number of values with delimiter defined by the input"() {
+        when:
+            def result = calculator.add(input)
+
+        then:
+            expectedResult == result
+
+        where:
+            input         || expectedResult
+            "//;\n1;2"    || 3
+            "//,\n1,2,3"  || 6
+            "//;\n1;2;3"  || 6
+            "//;\n"       || 0
+            "//x\n-1x1x1" || 1
+            "//^\n0^0^2"  || 2
+            "//.\n3.2.1"  || 6
+    }
 }
