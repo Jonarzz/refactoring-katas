@@ -1,8 +1,9 @@
 package io.github.jonarzz.kata.string.calculator.simple;
 
+import static java.lang.Integer.parseInt;
+
 import io.github.jonarzz.kata.string.calculator.StringCalculator;
 
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 class SplitStreamStringCalculator implements StringCalculator {
@@ -24,16 +25,14 @@ class SplitStreamStringCalculator implements StringCalculator {
         if (valueToSplit.isEmpty()) {
             return 0;
         }
-        return Arrays.stream(valueToSplit.split(delimiterRegex, -1))
-                     .peek(this::validate)
-                     .mapToInt(Integer::parseInt)
-                     .sum();
-    }
-
-    private void validate(String value) {
-        if (value.isEmpty()) {
-            throw new IllegalArgumentException("Separated values cannot be empty");
+        var sum = 0;
+        for (var value : valueToSplit.split(delimiterRegex, -1)) {
+            if (value.isEmpty()) {
+                throw new IllegalArgumentException("Separated values cannot be empty");
+            }
+            sum += parseInt(value);
         }
+        return sum;
     }
 
 }

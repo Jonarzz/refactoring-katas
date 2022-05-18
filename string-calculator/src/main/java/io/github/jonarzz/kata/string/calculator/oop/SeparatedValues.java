@@ -1,8 +1,6 @@
 package io.github.jonarzz.kata.string.calculator.oop;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 import java.util.function.BiFunction;
 
 class SeparatedValues<T> {
@@ -13,15 +11,8 @@ class SeparatedValues<T> {
         this.values = values;
     }
 
-    static SeparatedValues<Integer> notEmptyInts(String separatedValues, Delimiter delimiter) {
-        if (separatedValues.isEmpty()) {
-            return new SeparatedValues<>(Set.of());
-        }
-        var ints = Arrays.stream(delimiter.split(separatedValues))
-                         .peek(SeparatedValues::validateNotEmpty)
-                         .map(Integer::parseInt)
-                         .toList();
-        return new SeparatedValues<>(ints);
+    static <T> SeparatedValues.Creator<T> using(ValuesSplitter<T> splitter) {
+        return new Creator<>(splitter);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -30,10 +21,24 @@ class SeparatedValues<T> {
                      .reduce(initialValue, accumulator, (a, b) -> a);
     }
 
-    private static void validateNotEmpty(String value) {
-        if (value.isEmpty()) {
-            throw new IllegalArgumentException("Separated values cannot be empty");
+    static class Creator<T> {
+
+        private ValuesSplitter<T> splitter;
+        private Delimiter delimiter = Delimiter.notCustomized();
+
+        private Creator(ValuesSplitter<T> splitter) {
+            this.splitter = splitter;
         }
+
+        Creator<T> on(Delimiter delimiter) {
+            this.delimiter = delimiter;
+            return this;
+        }
+
+        SeparatedValues<T> split(String separatedValues) {
+            return new SeparatedValues<>(splitter.split(separatedValues, delimiter));
+        }
+
     }
 
 }

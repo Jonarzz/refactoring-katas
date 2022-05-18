@@ -11,7 +11,9 @@ public class ObjectBasedStringCalculator implements StringCalculator {
                         ? Delimiter.notCustomized()
                         : Delimiter.fromLine(lines[0]);
         var valuesToSplit = delimiter.isCustomized() ? lines[1] : numbers;
-        return SeparatedValues.notEmptyInts(valuesToSplit, delimiter)
+        return SeparatedValues.using(new ToNotEmptyIntsSplitter())
+                              .on(delimiter)
+                              .split(valuesToSplit)
                               .reduce(0, Integer::sum);
     }
 
