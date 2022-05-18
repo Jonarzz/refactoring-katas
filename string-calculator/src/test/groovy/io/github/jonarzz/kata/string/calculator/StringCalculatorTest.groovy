@@ -70,4 +70,37 @@ class StringCalculatorTest extends Specification {
             "1,-1,1,-1,1"               || 1
     }
 
+    def "Various number of values with various allowed separators"() {
+        when:
+            def result = calculator.add(input)
+
+        then:
+            expectedResult == result
+
+        where:
+            input                         || expectedResult
+            "1\n2,3"                      || 6
+            "1,2\n3"                      || 6
+            "0\n3"                        || 3
+            "10\n0\n5"                    || 15
+            "-1\n-2,-3"                   || -6
+            "-1\n1,-2\n-3,2\n3"           || 0
+            "0,0,0,0,0"                   || 0
+            "1,1,1,1,1,1,1,1\n1,1,1,1\n1" || 13
+            "1\n2\n3,4,5,6\n7"            || 28
+            "1\n-1,1\n-1,1"               || 1
+    }
+
+    def "Empty separated values are not allowed"() {
+        when:
+            calculator.add(input)
+
+        then:
+            def exception = thrown IllegalArgumentException
+            exception.message == "Separated values cannot be empty"
+
+        where:
+            input << ["1,\n", "1\n,", "1,\n,\n", ",", "\n", ",\n1", "1,2,3\n,", "1,2,3,\n", "1,2\n,3\n,4"]
+    }
+
 }

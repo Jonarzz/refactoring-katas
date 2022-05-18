@@ -13,3 +13,8 @@ For an empty string it will return 0.
 
 ### Step 2
 Allow the `add` method to handle an unknown amount of numbers.
+
+### Step 3
+Allow the `add` method to handle new lines between numbers (instead of commas):
+- the following input is OK: `“1\n2,3”` (will equal 6)
+- the following input is **not** OK: `“1,\n”`

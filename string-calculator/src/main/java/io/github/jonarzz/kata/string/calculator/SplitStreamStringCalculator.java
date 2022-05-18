@@ -1,17 +1,24 @@
 package io.github.jonarzz.kata.string.calculator;
 
-import static java.util.function.Predicate.not;
-
 import java.util.Arrays;
 
 class SplitStreamStringCalculator implements StringCalculator {
 
     @Override
     public int add(String numbers) {
-        return Arrays.stream(numbers.split(","))
-                     .filter(not(String::isEmpty))
+        if (numbers.isEmpty()) {
+            return 0;
+        }
+        return Arrays.stream(numbers.split("[\\n,]", -1))
+                     .peek(this::validate)
                      .mapToInt(Integer::parseInt)
                      .sum();
+    }
+
+    private void validate(String value) {
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("Separated values cannot be empty");
+        }
     }
 
 }
