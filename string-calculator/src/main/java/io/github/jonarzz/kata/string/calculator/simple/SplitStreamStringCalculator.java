@@ -1,9 +1,12 @@
 package io.github.jonarzz.kata.string.calculator.simple;
 
 import static java.lang.Integer.parseInt;
+import static java.lang.String.join;
 
 import io.github.jonarzz.kata.string.calculator.StringCalculator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 class SplitStreamStringCalculator implements StringCalculator {
@@ -26,11 +29,20 @@ class SplitStreamStringCalculator implements StringCalculator {
             return 0;
         }
         var sum = 0;
+        List<String> negativeValues = new ArrayList<>();
         for (var value : valueToSplit.split(delimiterRegex, -1)) {
             if (value.isEmpty()) {
                 throw new IllegalArgumentException("Separated values cannot be empty");
             }
-            sum += parseInt(value);
+            var intValue = parseInt(value);
+            if (intValue < 0) {
+                negativeValues.add(value);
+            } else {
+                sum += intValue;
+            }
+        }
+        if (!negativeValues.isEmpty()) {
+            throw new IllegalArgumentException("Negatives not allowed, but got: " + join(", ", negativeValues));
         }
         return sum;
     }

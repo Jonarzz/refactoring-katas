@@ -2,12 +2,12 @@ package io.github.jonarzz.kata.string.calculator.oop;
 
 import java.util.List;
 
-class ToNotEmptyIntsSplitter extends ValuesValidatingSplitter<Integer> {
+class ToPositiveIntsSplitter extends ValuesValidatingSplitter<Integer> {
 
-    ToNotEmptyIntsSplitter() {
+    ToPositiveIntsSplitter() {
         super(Integer::parseInt,
               List.of(new ThrowingValueValidator(new NotEmptyValueAcceptor())),
-              List.of());
+              List.of(new NotNegativeValueAcceptor()));
     }
 
 }
