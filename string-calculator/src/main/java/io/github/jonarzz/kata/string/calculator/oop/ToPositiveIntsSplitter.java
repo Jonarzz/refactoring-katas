@@ -6,8 +6,19 @@ class ToPositiveIntsSplitter extends ValuesValidatingSplitter<Integer> {
 
     ToPositiveIntsSplitter() {
         super(Integer::parseInt,
-              List.of(new ThrowingValueValidator(new NotEmptyValueAcceptor())),
-              List.of(new NotNegativeValueAcceptor()));
+              List.of(new NotEmptyValueValidator()),
+              List.of(NotNegativeValueValidator::new));
+    }
+
+    private ToPositiveIntsSplitter(int maxValue) {
+        super(Integer::parseInt,
+              List.of(new NotEmptyValueValidator()),
+              List.of(NotNegativeValueValidator::new,
+                      () -> new NotGreaterThanValidator(maxValue)));
+    }
+
+    static ToPositiveIntsSplitter withMaxAcceptedValue(int maxValue) {
+        return new ToPositiveIntsSplitter(maxValue);
     }
 
 }

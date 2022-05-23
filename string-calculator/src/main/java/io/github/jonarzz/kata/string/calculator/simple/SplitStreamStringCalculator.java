@@ -37,7 +37,7 @@ class SplitStreamStringCalculator implements StringCalculator {
             var intValue = parseInt(value);
             if (intValue < 0) {
                 negativeValues.add(value);
-            } else {
+            } else if (intValue <= 1000) {
                 sum += intValue;
             }
         }

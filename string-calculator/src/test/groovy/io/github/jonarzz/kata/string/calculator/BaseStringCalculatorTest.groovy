@@ -132,4 +132,22 @@ abstract class BaseStringCalculatorTest extends Specification {
             "//^\n0^0^2"  || 2
             "//.\n3.2.1"  || 6
     }
+
+    def "Ignore values bigger than 1000"() {
+        when:
+            def result = calculator.add(input)
+
+        then:
+            expectedResult == result
+
+        where:
+            input            || expectedResult
+            "2,1001"         || 2
+            "1000,1"         || 1001
+            "1,1000"         || 1001
+            "1,1000,2"       || 1003
+            "1001,1002"      || 0
+            "0,1,81249124,0" || 1
+    }
+
 }

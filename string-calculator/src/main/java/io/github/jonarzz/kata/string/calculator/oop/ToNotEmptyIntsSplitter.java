@@ -6,7 +6,7 @@ class ToNotEmptyIntsSplitter extends ValuesValidatingSplitter<Integer> {
 
     ToNotEmptyIntsSplitter() {
         super(Integer::parseInt,
-              List.of(new ThrowingValueValidator(new NotEmptyValueAcceptor())),
+              List.of(new NotEmptyValueValidator()),
               List.of());
     }
 
