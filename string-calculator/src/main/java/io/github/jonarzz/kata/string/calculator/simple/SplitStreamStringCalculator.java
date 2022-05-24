@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 class SplitStreamStringCalculator implements StringCalculator {
 
     private static final String DELIMITER_PREFIX = "//";
+    private static final Pattern EXTENDED_DELIMITER_PATTERN = Pattern.compile("\\[([^]]+)]");
 
     @Override
     public int add(String numbers) {
@@ -21,7 +22,12 @@ class SplitStreamStringCalculator implements StringCalculator {
             var split = numbers.split("\\n", -1);
             if (split.length == 2) {
                 var unescapedDelimiter = split[0].replaceFirst("^" + DELIMITER_PREFIX, "");
-                delimiterRegex = Pattern.quote(unescapedDelimiter);
+                var matcher = EXTENDED_DELIMITER_PATTERN.matcher(unescapedDelimiter);
+                if (matcher.matches()) {
+                    delimiterRegex = Pattern.quote(matcher.group(1));
+                } else {
+                    delimiterRegex = Pattern.quote(unescapedDelimiter);
+                }
                 valueToSplit = split[1];
             }
         }

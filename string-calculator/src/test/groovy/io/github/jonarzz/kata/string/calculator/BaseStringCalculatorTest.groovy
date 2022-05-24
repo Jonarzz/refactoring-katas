@@ -124,13 +124,16 @@ abstract class BaseStringCalculatorTest extends Specification {
             expectedResult == result
 
         where:
-            input         || expectedResult
-            "//;\n1;2"    || 3
-            "//,\n1,2,3"  || 6
-            "//;\n1;2;3"  || 6
-            "//;\n"       || 0
-            "//^\n0^0^2"  || 2
-            "//.\n3.2.1"  || 6
+            input                || expectedResult
+            "//;\n1;2"           || 3
+            "//,\n1,2,3"         || 6
+            "//;\n1;2;3"         || 6
+            "//;\n"              || 0
+            "//^\n0^0^2"         || 2
+            "//.\n3.2.1"         || 6
+            "//[***]\n1***2***3" || 6
+            "//[^.,]\n3^.,1^.,2" || 6
+            "//[_x]\n3_x1_x2"    || 6
     }
 
     def "Ignore values bigger than 1000"() {
