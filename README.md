@@ -26,13 +26,19 @@
 * [Fizz Buzz kata](fizz-buzz)
   * JMH
   * 11 implementations of a simple algorithm with performance comparison
+* [String Calculator kata](string-calculator)
+  * Spock
+  * incremental development (9 steps of discovering new requirements)
+  * the same algorithm written using object-oriented and procedural approach
+  * strategy (policy) pattern
+  * value objects
+  * regular expressions
 
 ## In progress
-* [String Calculator kata](string-calculator)
+* [Unusual Spending kata](unusual-spending)
 
 ## To do
 ### Katas
-* [Unusual Spending kata](unusual-spending)
 * [Manhattan Distance kata](manhattan-distance)
 * [The Lift kata](the-lift)
 * [Social Network kata](social-network)

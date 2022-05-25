@@ -21,23 +21,15 @@ public class SplitStreamStringCalculator implements StringCalculator {
     public int add(String numbers) {
         var valueToSplit = numbers;
         var delimiterRegex = "[\\n,]";
-        if (numbers.startsWith(DELIMITER_PREFIX)) {
-            var split = numbers.split("\\n", -1);
-            if (split.length == 2) {
-                var unescapedDelimiter = split[0].replaceFirst("^" + DELIMITER_PREFIX, "");
-                var matcher = EXTENDED_DELIMITER_PATTERN.matcher(unescapedDelimiter);
-                if (matcher.find()) {
-                    Set<String> delimiters = new HashSet<>();
-                    do {
-                        delimiters.add(quote(matcher.group(1)));
-                    } while (matcher.find());
-                    delimiterRegex = join("|", delimiters);
-                } else {
-                    delimiterRegex = Pattern.quote(unescapedDelimiter);
-                }
-                valueToSplit = split[1];
-            }
+        if (!numbers.startsWith(DELIMITER_PREFIX)) {
+            return calculateSum(valueToSplit, delimiterRegex);
         }
+        var split = numbers.split("\\n", -1);
+        if (split.length != 2) {
+            return calculateSum(valueToSplit, delimiterRegex);
+        }
+        delimiterRegex = calculateDelimitersFrom(split[0]);
+        valueToSplit = split[1];
         return calculateSum(valueToSplit, delimiterRegex);
     }
 
@@ -62,6 +54,19 @@ public class SplitStreamStringCalculator implements StringCalculator {
             throw new IllegalArgumentException("Negatives not allowed, but got: " + join(", ", negativeValues));
         }
         return sum;
+    }
+
+    private String calculateDelimitersFrom(String delimitersInput) {
+        var unescapedDelimiter = delimitersInput.replaceFirst("^" + DELIMITER_PREFIX, "");
+        var matcher = EXTENDED_DELIMITER_PATTERN.matcher(unescapedDelimiter);
+        if (!matcher.find()) {
+            return quote(unescapedDelimiter);
+        }
+        Set<String> delimiters = new HashSet<>();
+        do {
+            delimiters.add(quote(matcher.group(1)));
+        } while (matcher.find());
+        return join("|", delimiters);
     }
 
 }
