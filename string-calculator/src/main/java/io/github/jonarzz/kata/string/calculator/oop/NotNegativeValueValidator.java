@@ -5,7 +5,7 @@ import static java.lang.String.join;
 import java.util.ArrayList;
 import java.util.List;
 
-class NotNegativeValueValidator implements LazyValidator {
+class NotNegativeValueValidator implements LazyStatefulValidator {
 
     private List<String> invalidValues = new ArrayList<>();
 

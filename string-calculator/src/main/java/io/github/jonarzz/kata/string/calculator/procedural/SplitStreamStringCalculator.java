@@ -1,4 +1,4 @@
-package io.github.jonarzz.kata.string.calculator.simple;
+package io.github.jonarzz.kata.string.calculator.procedural;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.String.join;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-class SplitStreamStringCalculator implements StringCalculator {
+public class SplitStreamStringCalculator implements StringCalculator {
 
     private static final String DELIMITER_PREFIX = "//";
     private static final Pattern EXTENDED_DELIMITER_PATTERN = Pattern.compile("\\[([^]]+)]");

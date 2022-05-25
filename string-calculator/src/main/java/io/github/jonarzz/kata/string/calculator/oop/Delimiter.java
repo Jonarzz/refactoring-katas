@@ -13,12 +13,12 @@ class Delimiter {
 
     private final String regex;
 
-    private Delimiter() {
-        this(DEFAULT_REGEX);
-    }
-
     private Delimiter(String regex) {
         this.regex = regex;
+    }
+
+    private Delimiter() {
+        this(DEFAULT_REGEX);
     }
 
     static Delimiter notCustomized() {

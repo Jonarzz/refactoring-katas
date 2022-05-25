@@ -1,4 +1,4 @@
-package io.github.jonarzz.kata.string.calculator.simple
+package io.github.jonarzz.kata.string.calculator.procedural
 
 import io.github.jonarzz.kata.string.calculator.BaseStringCalculatorTest
 import io.github.jonarzz.kata.string.calculator.StringCalculator

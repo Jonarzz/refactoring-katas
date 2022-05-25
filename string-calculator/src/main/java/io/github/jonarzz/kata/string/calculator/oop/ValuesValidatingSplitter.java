@@ -10,11 +10,11 @@ class ValuesValidatingSplitter<T> implements ValuesSplitter<T> {
 
     private Function<String, T> validValueTransformer;
     private Collection<EagerValidator> eagerValidators;
-    private Collection<Supplier<LazyValidator>> lazyValidatorSuppliers;
+    private Collection<Supplier<LazyStatefulValidator>> lazyValidatorSuppliers;
 
     ValuesValidatingSplitter(Function<String, T> validValueTransformer,
                              Collection<EagerValidator> eagerValidators,
-                             Collection<Supplier<LazyValidator>> lazyValidatorSuppliers) {
+                             Collection<Supplier<LazyStatefulValidator>> lazyValidatorSuppliers) {
         this.validValueTransformer = validValueTransformer;
         this.eagerValidators = eagerValidators;
         this.lazyValidatorSuppliers = lazyValidatorSuppliers;
@@ -41,7 +41,7 @@ class ValuesValidatingSplitter<T> implements ValuesSplitter<T> {
                 list.add(validValueTransformer.apply(value));
             }
         }
-        lazyValidators.forEach(LazyValidator::throwValidationError);
+        lazyValidators.forEach(LazyStatefulValidator::throwValidationError);
         return list;
     }
 

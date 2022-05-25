@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.string.calculator.oop;
 
-interface LazyValidator {
+interface LazyStatefulValidator {
 
     boolean validate(String value);
 
