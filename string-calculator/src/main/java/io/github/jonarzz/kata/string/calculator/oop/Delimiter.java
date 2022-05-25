@@ -1,7 +1,10 @@
 package io.github.jonarzz.kata.string.calculator.oop;
 
+import static java.lang.String.join;
 import static java.util.regex.Pattern.quote;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 class Delimiter {
@@ -31,10 +34,14 @@ class Delimiter {
         }
         var delimiterValue = line.replaceFirst("^" + DELIMITER_LINE_PREFIX, "");
         var matcher = EXTENDED_DELIMITER_PATTERN.matcher(delimiterValue);
-        if (matcher.matches()) {
-            delimiterValue = matcher.group(1);
+        if (!matcher.find()) {
+            return new Delimiter(quote(delimiterValue));
         }
-        return new Delimiter(quote(delimiterValue));
+        Set<String> delimiters = new HashSet<>();
+        do {
+            delimiters.add(quote(matcher.group(1)));
+        } while (matcher.find());
+        return new Delimiter(join("|", delimiters));
     }
 
     String[] split(String value) {

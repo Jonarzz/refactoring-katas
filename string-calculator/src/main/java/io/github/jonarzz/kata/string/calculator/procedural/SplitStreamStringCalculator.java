@@ -2,11 +2,14 @@ package io.github.jonarzz.kata.string.calculator.procedural;
 
 import static java.lang.Integer.parseInt;
 import static java.lang.String.join;
+import static java.util.regex.Pattern.quote;
 
 import io.github.jonarzz.kata.string.calculator.StringCalculator;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class SplitStreamStringCalculator implements StringCalculator {
@@ -23,14 +26,22 @@ public class SplitStreamStringCalculator implements StringCalculator {
             if (split.length == 2) {
                 var unescapedDelimiter = split[0].replaceFirst("^" + DELIMITER_PREFIX, "");
                 var matcher = EXTENDED_DELIMITER_PATTERN.matcher(unescapedDelimiter);
-                if (matcher.matches()) {
-                    delimiterRegex = Pattern.quote(matcher.group(1));
+                if (matcher.find()) {
+                    Set<String> delimiters = new HashSet<>();
+                    do {
+                        delimiters.add(quote(matcher.group(1)));
+                    } while (matcher.find());
+                    delimiterRegex = join("|", delimiters);
                 } else {
                     delimiterRegex = Pattern.quote(unescapedDelimiter);
                 }
                 valueToSplit = split[1];
             }
         }
+        return calculateSum(valueToSplit, delimiterRegex);
+    }
+
+    private int calculateSum(String valueToSplit, String delimiterRegex) {
         if (valueToSplit.isEmpty()) {
             return 0;
         }
