@@ -2,7 +2,7 @@
 ## Requirements
 You work at a credit card company and as a value-add they want to start providing alerts to users when their spending in any particular category is higher than usual.
 
-A Payment is a simple value object with a price, description, and category.
+A Payment is a simple value object with a expense, description, and category.
 
 A Category is an enumerable type of a collection of things like 
 “entertainment”, “restaurants”, and “golf”.
