@@ -1,5 +1,6 @@
-package io.github.jonarzz.kata.unusual.spending.i18n;
+package io.github.jonarzz.kata.unusual.spending.notification;
 
+import static java.util.Locale.ENGLISH;
 import static java.util.Locale.forLanguageTag;
 
 import java.io.File;
@@ -9,13 +10,16 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 
 class MessageRegistry {
 
-    public static final String MESSAGES_FILE_EXTENSION = ".properties";
-    public static final String KEY_AND_MESSAGE_SEPARATOR = "=";
+    private static final Locale FALLBACK_LOCALE = ENGLISH;
 
-    private Map<Locale, Map<String, String>> keyGroupedMessagesByLocale;
+    private static final String MESSAGES_FILE_EXTENSION = ".properties";
+    private static final String KEY_AND_MESSAGE_SEPARATOR = "=";
+
+    private Map<Locale, Properties> messagesByLocale;
 
     MessageRegistry() {
         reload();
@@ -31,11 +35,11 @@ class MessageRegistry {
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
-        Map<Locale, Map<String, String>> loadedMessages = new HashMap<>();
+        Map<Locale, Properties> loadedMessages = new HashMap<>();
         for (var file : i18nDirectory.listFiles((dir, name) -> name.endsWith(MESSAGES_FILE_EXTENSION))) {
             var locale = forLanguageTag(file.getName()
                                             .replaceFirst(MESSAGES_FILE_EXTENSION + "$", ""));
-            var messageByKey = new HashMap<String, String>();
+            var messageByKey = new Properties();
             loadedMessages.put(locale, messageByKey);
             try (var lines = Files.lines(file.toPath())) {
                 lines.map(line -> line.split(KEY_AND_MESSAGE_SEPARATOR))
@@ -48,16 +52,22 @@ class MessageRegistry {
                 throw new IllegalStateException(e);
             }
         }
-        keyGroupedMessagesByLocale = loadedMessages;
+        messagesByLocale = loadedMessages;
         return this;
     }
 
     String get(String key) {
-        var localeMessagesByKey = keyGroupedMessagesByLocale.get(Locale.getDefault());
+        var locale = Locale.getDefault();
+        var localeMessagesByKey = messagesByLocale.get(locale);
         if (localeMessagesByKey == null) {
-            return null;
+            locale = FALLBACK_LOCALE;
+            localeMessagesByKey = messagesByLocale.get(locale);
         }
-        return localeMessagesByKey.get(key);
+        var property = localeMessagesByKey.getProperty(key);
+        if (property == null) {
+            throw new IllegalStateException("Not found message with key '" + key + "' for " + locale);
+        }
+        return property;
     }
 
 }

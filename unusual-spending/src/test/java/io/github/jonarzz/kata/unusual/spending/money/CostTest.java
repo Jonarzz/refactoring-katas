@@ -1,6 +1,6 @@
-package io.github.jonarzz.kata.unusual.spending.expense;
+package io.github.jonarzz.kata.unusual.spending.money;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.Expense.usd;
+import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -13,11 +13,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-class ExpenseTest {
+class CostTest {
 
     @ParameterizedTest(name = "{0} + {0}")
     @MethodSource("addArgsSource")
-    void add(Expense first, Expense second, Expense expectedResult) {
+    void add(Cost first, Cost second, Cost expectedResult) {
         var result = first.add(second);
 
         assertThat(result)
@@ -32,6 +32,7 @@ class ExpenseTest {
                 arguments(usd(1, 0),   usd(2, 0),     usd(3, 0)),
                 arguments(usd(9, 0),   usd(13, 0),    usd(22, 0)),
                 arguments(usd(1, 99),  usd(0, 59),    usd(2, 58)),
+                arguments(usd(0, 999), usd(0, 1),     usd(10, 0)),
                 arguments(usd(99, 99), usd(1299, 99), usd(1399, 98))
         );
     }

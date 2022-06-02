@@ -1,17 +1,32 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
+import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
 
 import java.util.Objects;
 
-class CategorizedExpense implements Comparable<CategorizedExpense> {
+public class CategorizedExpense implements Comparable<CategorizedExpense> {
 
     private Category category;
-    private Expense expense;
+    private Cost amount;
 
-    CategorizedExpense(Category category, Expense expense) {
+    CategorizedExpense(Category category, Cost amount) {
         this.category = category;
-        this.expense = expense;
+        this.amount = amount;
+    }
+
+    public String category() {
+        return category.toString()
+                       .toLowerCase();
+    }
+
+    public String amount() {
+        return amount.toString();
+    }
+
+    @Override
+    public int compareTo(CategorizedExpense other) {
+        return amount.compareTo(other.amount);
     }
 
     @Override
@@ -23,25 +38,16 @@ class CategorizedExpense implements Comparable<CategorizedExpense> {
             return false;
         }
         return category == that.category
-               && expense.equals(that.expense);
+               && amount.equals(that.amount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(category, expense);
+        return Objects.hash(category, amount);
     }
 
     @Override
-    public int compareTo(CategorizedExpense other) {
-        return expense.compareTo(other.expense);
+    public String toString() {
+        return "CategorizedExpense{category=%s, amount=%s}".formatted(category, amount);
     }
-
-    String category() {
-        return category.toString().toLowerCase();
-    }
-
-    String expense() {
-        return expense.toString();
-    }
-
 }

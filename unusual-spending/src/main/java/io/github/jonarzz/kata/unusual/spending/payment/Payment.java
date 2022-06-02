@@ -1,13 +1,13 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
-import io.github.jonarzz.kata.unusual.spending.expense.Expense;
+import io.github.jonarzz.kata.unusual.spending.money.Cost;
 
 class Payment {
 
     private Category category;
-    private Expense expense;
+    private Cost expense;
 
-    Payment(Category category, Expense expense) {
+    Payment(Category category, Cost expense) {
         this.category = category;
         this.expense = expense;
     }
@@ -16,7 +16,7 @@ class Payment {
         return category;
     }
 
-    Expense price() {
+    Cost price() {
         return expense;
     }
 

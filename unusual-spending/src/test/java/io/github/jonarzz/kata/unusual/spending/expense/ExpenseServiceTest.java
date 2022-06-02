@@ -1,7 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.Expense.usd;
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.expenses;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.WithThreshold.expenses;
+import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.GOLF;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.RESTAURANTS;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.TRAVEL;
@@ -118,7 +118,7 @@ class ExpenseServiceTest {
                                                         .matching(threshold));
 
         assertThat(payments)
-                .extracting(CategorizedExpense::category, CategorizedExpense::expense)
+                .extracting(CategorizedExpense::category, CategorizedExpense::amount)
                 .containsExactly(
                         tuple("travel", "$500.75")
                 );
@@ -143,7 +143,7 @@ class ExpenseServiceTest {
                                                         .matching(threshold));
 
         assertThat(payments)
-                .extracting(CategorizedExpense::category, CategorizedExpense::expense)
+                .extracting(CategorizedExpense::category, CategorizedExpense::amount)
                 .containsExactly(
                         tuple("golf", "$505.99")
                 );

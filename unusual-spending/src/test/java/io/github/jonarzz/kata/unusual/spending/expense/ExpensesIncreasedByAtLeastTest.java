@@ -1,5 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
+import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;
@@ -9,13 +10,13 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
 
-class ExpensesIncreaseNoLesserThanTest {
+class ExpensesIncreasedByAtLeastTest {
 
     @Nested
     @DisplayName("250% increase threshold")
     class _250percentIncreaseThreshold {
 
-        SpendingThreshold threshold = ExpensesIncreaseNoLesserThan.percentage(250);
+        SpendingThreshold threshold = new ExpensesIncreasedByAtLeast(percentage(250));
 
         @ParameterizedTest(name = "previous = {0}, current = {1}")
         @CsvSource({

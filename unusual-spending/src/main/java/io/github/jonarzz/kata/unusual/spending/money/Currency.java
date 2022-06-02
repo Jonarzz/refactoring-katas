@@ -1,4 +1,4 @@
-package io.github.jonarzz.kata.unusual.spending.expense;
+package io.github.jonarzz.kata.unusual.spending.money;
 
 import static java.util.Locale.US;
 
@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-enum Currency {
+public enum Currency {
 
     USD(US);
 
@@ -16,7 +16,7 @@ enum Currency {
         this.locale = locale;
     }
 
-    String format(BigDecimal price) {
+    public String format(BigDecimal price) {
         return NumberFormat.getCurrencyInstance(locale)
                            .format(price.doubleValue());
     }

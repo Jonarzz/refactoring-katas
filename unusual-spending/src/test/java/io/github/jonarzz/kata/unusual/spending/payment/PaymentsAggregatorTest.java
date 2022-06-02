@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.Expense.usd;
+import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.GOLF;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.GROCERIES;
 import static io.github.jonarzz.kata.unusual.spending.payment.Category.RESTAURANTS;
@@ -14,7 +14,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.github.jonarzz.kata.unusual.spending.expense.Expense;
+import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -44,7 +44,7 @@ class PaymentsAggregatorTest {
 
         @Test
         void singlePaymentInMultipleCategories() {
-            Map<Category, Expense> priceByCategory = Map.of(
+            Map<Category, Cost> priceByCategory = Map.of(
                     RESTAURANTS, usd(123, 99),
                     GROCERIES, usd(17, 33),
                     TRAVEL, usd(1999, 99)

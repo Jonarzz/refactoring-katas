@@ -4,7 +4,7 @@ import io.github.jonarzz.kata.unusual.spending.payment.Category;
 import io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicy;
 import io.github.jonarzz.kata.unusual.spending.payment.Timespan;
 
-class TimestampedExpenseComparison {
+public class TimestampedExpenseComparison {
 
     final Timespan comparedTimespan;
 
@@ -12,15 +12,11 @@ class TimestampedExpenseComparison {
         this.comparedTimespan = comparedTimespan;
     }
 
-    static TimestampedExpenseComparison expenses(Timespan comparedTimespan) {
-        return new TimestampedExpenseComparison(comparedTimespan);
-    }
-
     public WithGrouping groupedBy(GroupingPolicy<Category> groupingPolicy) {
         return new WithGrouping(comparedTimespan, groupingPolicy);
     }
 
-    static class WithGrouping extends TimestampedExpenseComparison {
+    public static class WithGrouping extends TimestampedExpenseComparison {
 
         final GroupingPolicy<Category> groupingPolicy;
 
@@ -29,12 +25,12 @@ class TimestampedExpenseComparison {
             this.groupingPolicy = groupingPolicy;
         }
 
-        WithTimestamps comparedToExpenses(Timespan baseTimespan) {
+        public WithTimestamps comparedToExpenses(Timespan baseTimespan) {
             return new WithTimestamps(comparedTimespan, groupingPolicy, baseTimespan);
         }
     }
 
-    static class WithTimestamps extends WithGrouping {
+    public static class WithTimestamps extends WithGrouping {
 
         final Timespan baseTimespan;
 
@@ -43,12 +39,17 @@ class TimestampedExpenseComparison {
             this.baseTimespan = baseTimespan;
         }
 
+        public WithThreshold increasedByAtLeast(ThresholdValue thresholdValue) {
+            var threshold = new ExpensesIncreasedByAtLeast(thresholdValue);
+            return matching(threshold);
+        }
+
         WithThreshold matching(SpendingThreshold threshold) {
             return new WithThreshold(comparedTimespan, groupingPolicy, baseTimespan, threshold);
         }
     }
 
-    static class WithThreshold extends WithTimestamps {
+    public static class WithThreshold extends WithTimestamps {
 
         private final SpendingThreshold threshold;
 
@@ -56,6 +57,10 @@ class TimestampedExpenseComparison {
                               Timespan baseTimespan, SpendingThreshold threshold) {
             super(comparedTimespan, groupingPolicy, baseTimespan);
             this.threshold = threshold;
+        }
+
+        public static TimestampedExpenseComparison expenses(Timespan comparedTimespan) {
+            return new TimestampedExpenseComparison(comparedTimespan);
         }
 
         Timespan comparedTimespan() {
