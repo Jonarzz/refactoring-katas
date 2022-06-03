@@ -10,6 +10,7 @@ import static java.util.Comparator.reverseOrder;
 import io.github.jonarzz.kata.unusual.spending.expense.CategorizedExpense;
 import io.github.jonarzz.kata.unusual.spending.expense.ExpenseService;
 
+import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.Collection;
 import java.util.Optional;
@@ -28,10 +29,10 @@ public class UnusualExpensesNotificationService {
         this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
-    public Optional<String> createNotificationBody() {
+    public Optional<String> createNotificationBody(BigInteger userId) {
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);
-        var unusualExpenses = expenseService.calculate(forUserId(null) // TODO retrieval for given user ID
+        var unusualExpenses = expenseService.calculate(forUserId(userId)
                                                                .aggregateExpenses(fromWhole(currentMonth))
                                                                .groupedBy(category())
                                                                .comparedToAggregatedExpenses(fromWhole(previousMonth))

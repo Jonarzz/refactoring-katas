@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 
+import java.math.BigInteger;
 import java.util.Map;
 
 public class PaymentService {
@@ -14,8 +15,9 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    public <T> Map<T, Cost> aggregateTotalExpensesBy(AggregationPolicy<T> policy, AggregationTimespan timespan) {
-        return paymentRepository.getPaymentsBetween(timespan.start(), timespan.end())
+    public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
+                                                         BigInteger userId, AggregationTimespan timespan) {
+        return paymentRepository.getUserPaymentsBetween(userId, timespan.start(), timespan.end())
                                 .stream()
                                 .collect(toMap(policy,
                                                Payment::price,

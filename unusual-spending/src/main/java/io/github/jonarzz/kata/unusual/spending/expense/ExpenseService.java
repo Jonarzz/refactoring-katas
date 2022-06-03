@@ -16,9 +16,10 @@ public class ExpenseService {
     }
 
     public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison expenseComparison) {
+        var userId = expenseComparison.userId();
         var policy = expenseComparison.groupingPolicy();
-        var baseExpenses = paymentService.aggregateTotalExpensesBy(policy, expenseComparison.baseTimespan());
-        var comparedExpenses = paymentService.aggregateTotalExpensesBy(policy, expenseComparison.comparedTimespan());
+        var baseExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, expenseComparison.baseTimespan());
+        var comparedExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, expenseComparison.comparedTimespan());
         Collection<CategorizedExpense> paymentsMatchingThreshold = new HashSet<>();
         for (var categoryToCurrentExpense : comparedExpenses.entrySet()) {
             var category = categoryToCurrentExpense.getKey();
