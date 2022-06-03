@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-class TimespanTest {
+class AggregationTimespanTest {
 
     @ParameterizedTest(name = "{0}-2022")
     @CsvSource({
@@ -15,11 +15,11 @@ class TimespanTest {
             "6, 2022-06-01T00:00:00, 2022-06-30T23:59:59.999999999"
     })
     void monthly(int month, String expectedStart, String expectedEnd) {
-        var timespan = Timespan.from(of(2022, month));
+        var timespan = AggregationTimespan.fromWhole(of(2022, month));
 
-        assertThat(timespan.from())
+        assertThat(timespan.start())
                 .isEqualTo(expectedStart);
-        assertThat(timespan.to())
+        assertThat(timespan.end())
                 .isEqualTo(expectedEnd);
     }
 

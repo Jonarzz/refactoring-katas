@@ -6,18 +6,18 @@ import io.github.jonarzz.kata.unusual.spending.money.Cost;
 
 import java.util.Map;
 
-public class PaymentsAggregator {
+public class PaymentService {
 
     private PaymentRepository paymentRepository;
 
-    public PaymentsAggregator(PaymentRepository paymentRepository) {
+    public PaymentService(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
     }
 
-    public <T> Map<T, Cost> calculateTotalExpensesGroupedBy(GroupingPolicy<T> groupingPolicy, Timespan timespan) {
-        return paymentRepository.getPaymentsBetween(timespan.from(), timespan.to())
+    public <T> Map<T, Cost> aggregateTotalExpensesBy(AggregationPolicy<T> policy, AggregationTimespan timespan) {
+        return paymentRepository.getPaymentsBetween(timespan.start(), timespan.end())
                                 .stream()
-                                .collect(toMap(groupingPolicy,
+                                .collect(toMap(policy,
                                                Payment::price,
                                                Cost::add));
     }

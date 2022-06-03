@@ -4,12 +4,13 @@ import static java.util.Locale.ENGLISH;
 import static java.util.Locale.forLanguageTag;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 class MessageRegistry {
@@ -17,7 +18,6 @@ class MessageRegistry {
     private static final Locale FALLBACK_LOCALE = ENGLISH;
 
     private static final String MESSAGES_FILE_EXTENSION = ".properties";
-    private static final String KEY_AND_MESSAGE_SEPARATOR = "=";
 
     private Map<Locale, Properties> messagesByLocale;
 
@@ -41,13 +41,8 @@ class MessageRegistry {
                                             .replaceFirst(MESSAGES_FILE_EXTENSION + "$", ""));
             var messageByKey = new Properties();
             loadedMessages.put(locale, messageByKey);
-            try (var lines = Files.lines(file.toPath())) {
-                lines.map(line -> line.split(KEY_AND_MESSAGE_SEPARATOR))
-                     .filter(split -> split.length == 2)
-                     .forEach(keyAndMessage -> messageByKey.put(keyAndMessage[0].strip(),
-                                                                keyAndMessage[1].strip()
-                                                                                .replaceAll("(^\")|(\"$)", "")
-                                                                                .replace("\\n", "\n")));
+            try (var inFileStream = new FileInputStream(file)) {
+                messageByKey.load(inFileStream);
             } catch (IOException e) {
                 throw new IllegalStateException(e);
             }
@@ -58,14 +53,13 @@ class MessageRegistry {
 
     String get(String key) {
         var locale = Locale.getDefault();
-        var localeMessagesByKey = messagesByLocale.get(locale);
-        if (localeMessagesByKey == null) {
-            locale = FALLBACK_LOCALE;
-            localeMessagesByKey = messagesByLocale.get(locale);
-        }
-        var property = localeMessagesByKey.getProperty(key);
+        var property = Optional.ofNullable(messagesByLocale.get(locale))
+                               .orElseGet(() -> messagesByLocale.get(FALLBACK_LOCALE))
+                               .getProperty(key);
         if (property == null) {
-            throw new IllegalStateException("Not found message with key '" + key + "' for " + locale);
+            throw new IllegalStateException(
+                    "Not found message with key '%s' for neither %s nor fallback (%s) language".formatted(
+                            key, locale.getDisplayLanguage(ENGLISH), FALLBACK_LOCALE.getDisplayLanguage(ENGLISH)));
         }
         return property;
     }

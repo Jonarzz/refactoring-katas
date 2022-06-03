@@ -1,12 +1,8 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.GOLF;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.GROCERIES;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.RESTAURANTS;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.TRAVEL;
-import static io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicies.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.Timespan.from;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
 import static java.time.YearMonth.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -23,10 +19,10 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-class PaymentsAggregatorTest {
+class PaymentServiceTest {
 
     PaymentRepository repository = mock(PaymentRepository.class);
-    PaymentsAggregator aggregator = new PaymentsAggregator(repository);
+    PaymentService aggregator = new PaymentService(repository);
 
     @Nested
     class CalculateTotalExpenseByCategory {
@@ -36,7 +32,7 @@ class PaymentsAggregatorTest {
             when(repository.getPaymentsBetween(any(), any()))
                     .thenReturn(List.of());
 
-            var result = aggregator.calculateTotalExpensesGroupedBy(category(), from(of(2022, 5)));
+            var result = aggregator.aggregateTotalExpensesBy(category(), fromWhole(of(2022, 5)));
 
             assertThat(result)
                     .isEmpty();
@@ -45,9 +41,9 @@ class PaymentsAggregatorTest {
         @Test
         void singlePaymentInMultipleCategories() {
             Map<Category, Cost> priceByCategory = Map.of(
-                    RESTAURANTS, usd(123, 99),
-                    GROCERIES, usd(17, 33),
-                    TRAVEL, usd(1999, 99)
+                    Category.named("RESTAURANTS"), usd(123, 99),
+                    Category.named("GROCERIES"), usd(17, 33),
+                    Category.named("TRAVEL"), usd(1999, 99)
             );
             when(repository.getPaymentsBetween(any(), any()))
                     .thenReturn(priceByCategory.entrySet()
@@ -55,7 +51,7 @@ class PaymentsAggregatorTest {
                                                .map(entry -> new Payment(entry.getKey(), entry.getValue()))
                                                .toList());
 
-            var result = aggregator.calculateTotalExpensesGroupedBy(category(), from(of(2022, 5)));
+            var result = aggregator.aggregateTotalExpensesBy(category(), fromWhole(of(2022, 5)));
 
             assertThat(result)
                     .containsExactlyInAnyOrderEntriesOf(priceByCategory);
@@ -63,7 +59,7 @@ class PaymentsAggregatorTest {
 
         @Test
         void multiplePaymentsInSingleCategory() {
-            var category = GOLF;
+            var category = Category.named("GOLF");
             Supplier<IntStream> dollarValuesSupplier = () -> IntStream.of(15, 21, 90, 123);
             var dollarsSum = dollarValuesSupplier.get()
                                                  .sum();
@@ -72,7 +68,7 @@ class PaymentsAggregatorTest {
                                                     .mapToObj(dollars -> new Payment(category, usd(dollars, 0)))
                                                     .toList());
 
-            var result = aggregator.calculateTotalExpensesGroupedBy(category(), from(of(2022, 5)));
+            var result = aggregator.aggregateTotalExpensesBy(category(), fromWhole(of(2022, 5)));
 
             assertThat(result)
                     .containsOnly(entry(category, usd(dollarsSum, 0)));
@@ -80,8 +76,8 @@ class PaymentsAggregatorTest {
 
         @Test
         void multiplePaymentsInMultipleCategories() {
-            var categorySummingUpTo4 = RESTAURANTS;
-            var categorySummingUpTo2 = GROCERIES;
+            var categorySummingUpTo4 = Category.named("RESTAURANTS");
+            var categorySummingUpTo2 = Category.named("GROCERIES");
             when(repository.getPaymentsBetween(any(), any()))
                     .thenReturn(List.of(
                             new Payment(categorySummingUpTo4, usd(1, 0)),
@@ -92,7 +88,7 @@ class PaymentsAggregatorTest {
                             new Payment(categorySummingUpTo4, usd(1, 0))
                     ));
 
-            var result = aggregator.calculateTotalExpensesGroupedBy(category(), from(of(2022, 5)));
+            var result = aggregator.aggregateTotalExpensesBy(category(), fromWhole(of(2022, 5)));
 
             assertThat(result)
                     .containsOnly(

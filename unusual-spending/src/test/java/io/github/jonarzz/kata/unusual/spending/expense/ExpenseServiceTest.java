@@ -1,12 +1,10 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.WithThreshold.expenses;
+import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.GOLF;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.RESTAURANTS;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.TRAVEL;
-import static io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicies.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.Timespan.from;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
 import static java.time.YearMonth.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -15,31 +13,32 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
-import io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicy;
-import io.github.jonarzz.kata.unusual.spending.payment.PaymentsAggregator;
+import io.github.jonarzz.kata.unusual.spending.payment.PaymentService;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 class ExpenseServiceTest {
 
-    GroupingPolicy<Category> groupingPolicy = category();
+    AggregationPolicy<Category> aggregationPolicy = category();
 
-    PaymentsAggregator paymentsAggregator = mock(PaymentsAggregator.class);
-    ExpenseService expenseService = new ExpenseService(paymentsAggregator);
+    PaymentService paymentService = mock(PaymentService.class);
+    ExpenseService expenseService = new ExpenseService(paymentService);
 
     @Test
     void noPaymentsInGivenTimespan() {
-        var fromPreviousTimespan = from(of(2020, 4));
-        var fromCurrentTimespan = from(of(2022, 5));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(eq(groupingPolicy), any()))
+        var fromPreviousTimespan = fromWhole(of(2020, 4));
+        var fromCurrentTimespan = fromWhole(of(2022, 5));
+        when(paymentService.aggregateTotalExpensesBy(eq(aggregationPolicy), any()))
                 .thenReturn(Map.of());
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(null));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(50)));
 
         assertThat(payments)
                 .isEmpty();
@@ -47,17 +46,18 @@ class ExpenseServiceTest {
 
     @Test
     void noPaymentsInPreviousTimespan_paymentsExistInCurrentTimespan() {
-        var fromCurrentTimespan = from(of(2022, 5));
-        var fromPreviousTimespan = from(of(2020, 4));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromPreviousTimespan))
+        var fromCurrentTimespan = fromWhole(of(2022, 5));
+        var fromPreviousTimespan = fromWhole(of(2020, 4));
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromPreviousTimespan))
                 .thenReturn(Map.of());
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromCurrentTimespan))
-                .thenReturn(Map.of(TRAVEL, usd(250, 0)));
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromCurrentTimespan))
+                .thenReturn(Map.of(Category.named("TRAVEL"), usd(250, 0)));
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(null));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(50)));
 
         assertThat(payments)
                 .isEmpty();
@@ -65,17 +65,18 @@ class ExpenseServiceTest {
 
     @Test
     void paymentsExistInPreviousTimespan_noPaymentsInCurrentTimespan() {
-        var fromPreviousTimespan = from(of(2020, 4));
-        var fromCurrentTimespan = from(of(2022, 5));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromPreviousTimespan))
-                .thenReturn(Map.of(TRAVEL, usd(250, 0)));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromCurrentTimespan))
+        var fromPreviousTimespan = fromWhole(of(2020, 4));
+        var fromCurrentTimespan = fromWhole(of(2022, 5));
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromPreviousTimespan))
+                .thenReturn(Map.of(Category.named("TRAVEL"), usd(250, 0)));
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromCurrentTimespan))
                 .thenReturn(Map.of());
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(null));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(50)));
 
         assertThat(payments)
                 .isEmpty();
@@ -83,19 +84,20 @@ class ExpenseServiceTest {
 
     @Test
     void thresholdNotMetForCategoryPresentInPreviousAndCurrentTimespan() {
-        var fromPreviousTimespan = from(of(2020, 4));
-        var fromCurrentTimespan = from(of(2022, 5));
-        var category = TRAVEL;
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromPreviousTimespan))
+        var fromPreviousTimespan = fromWhole(of(2020, 4));
+        var fromCurrentTimespan = fromWhole(of(2022, 5));
+        var category = Category.named("TRAVEL");
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromPreviousTimespan))
                 .thenReturn(Map.of(category, usd(250, 0)));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromCurrentTimespan))
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromCurrentTimespan))
                 .thenReturn(Map.of(category, usd(300, 0)));
         SpendingThreshold threshold = (base, compared) -> false;
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(threshold));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(1000)));
 
         assertThat(payments)
                 .isEmpty();
@@ -103,19 +105,20 @@ class ExpenseServiceTest {
 
     @Test
     void thresholdMetForCategoryPresentInPreviousAndCurrentTimespan() {
-        var fromPreviousTimespan = from(of(2020, 4));
-        var fromCurrentTimespan = from(of(2022, 5));
-        var category = TRAVEL;
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromPreviousTimespan))
+        var fromPreviousTimespan = fromWhole(of(2020, 4));
+        var fromCurrentTimespan = fromWhole(of(2022, 5));
+        var category = Category.named("TRAVEL");
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromPreviousTimespan))
                 .thenReturn(Map.of(category, usd(250, 0)));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromCurrentTimespan))
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromCurrentTimespan))
                 .thenReturn(Map.of(category, usd(500, 75)));
         SpendingThreshold threshold = (base, compared) -> true;
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(threshold));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(10)));
 
         assertThat(payments)
                 .extracting(CategorizedExpense::category, CategorizedExpense::amount)
@@ -126,21 +129,22 @@ class ExpenseServiceTest {
 
     @Test
     void categoriesPartiallyOverlappingBetweenPreviousAndCurrentTimespan_matchingCategoryExpensesExceedThreshold() {
-        var fromCurrentTimespan = from(of(2022, 4));
-        var fromPreviousTimespan = from(of(2020, 5));
-        var matchingCategory = GOLF;
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromPreviousTimespan))
-                .thenReturn(Map.of(TRAVEL, usd(1050, 99),
+        var fromCurrentTimespan = fromWhole(of(2022, 4));
+        var fromPreviousTimespan = fromWhole(of(2020, 5));
+        var matchingCategory = Category.named("GOLF");
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromPreviousTimespan))
+                .thenReturn(Map.of(Category.named("TRAVEL"), usd(1050, 99),
                                    matchingCategory, usd(250, 0)));
-        when(paymentsAggregator.calculateTotalExpensesGroupedBy(groupingPolicy, fromCurrentTimespan))
-                .thenReturn(Map.of(RESTAURANTS, usd(120, 50),
+        when(paymentService.aggregateTotalExpensesBy(aggregationPolicy, fromCurrentTimespan))
+                .thenReturn(Map.of(Category.named("RESTAURANTS"), usd(120, 50),
                                    matchingCategory, usd(505, 99)));
         SpendingThreshold threshold = (base, compared) -> true;
 
-        var payments = expenseService.calculate(expenses(fromCurrentTimespan)
+        var payments = expenseService.calculate(forUserId(null)
+                                                        .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
-                                                        .comparedToExpenses(fromPreviousTimespan)
-                                                        .matching(threshold));
+                                                        .comparedToAggregatedExpenses(fromPreviousTimespan)
+                                                        .increasedByAtLeast(percentage(0)));
 
         assertThat(payments)
                 .extracting(CategorizedExpense::category, CategorizedExpense::amount)

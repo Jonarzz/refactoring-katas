@@ -1,45 +1,66 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
 import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.WithThreshold.expenses;
-import static io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicies.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.Timespan.from;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
+import static java.lang.System.lineSeparator;
 import static java.util.Comparator.reverseOrder;
 
+import io.github.jonarzz.kata.unusual.spending.expense.CategorizedExpense;
 import io.github.jonarzz.kata.unusual.spending.expense.ExpenseService;
 
 import java.time.YearMonth;
+import java.util.Collection;
 import java.util.Optional;
 
 public class UnusualExpensesNotificationService {
 
     private ExpenseService expenseService;
-    private UnusualExpenseI18nService i18nService;
+    private CommonI18nService commonI18nService;
+    private UnusualExpenseI18nService unusualExpenseI18nService;
 
-    public UnusualExpensesNotificationService(ExpenseService expenseService, UnusualExpenseI18nService i18nService) {
+    public UnusualExpensesNotificationService(ExpenseService expenseService,
+                                              CommonI18nService commonI18nService,
+                                              UnusualExpenseI18nService unusualExpenseI18nService) {
         this.expenseService = expenseService;
-        this.i18nService = i18nService;
+        this.commonI18nService = commonI18nService;
+        this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
-    public Optional<String> createNotificationBody() { // TODO retrieval for given user ID
+    public Optional<String> createNotificationBody() {
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);
-        var unusualExpenses = expenseService.calculate(expenses(from(currentMonth))
+        var unusualExpenses = expenseService.calculate(forUserId(null) // TODO retrieval for given user ID
+                                                               .aggregateExpenses(fromWhole(currentMonth))
                                                                .groupedBy(category())
-                                                               .comparedToExpenses(from(previousMonth))
+                                                               .comparedToAggregatedExpenses(fromWhole(previousMonth))
                                                                .increasedByAtLeast(percentage(150)));
         if (unusualExpenses.isEmpty()) {
             return Optional.empty();
         }
-        var bodyBuilder = new StringBuilder(i18nService.getMessageBeginning());
+        return Optional.of(buildNotification(unusualExpenses));
+    }
+
+    private String buildNotification(Collection<CategorizedExpense> unusualExpenses) {
+        var bodyBuilder = new StringBuilder(unusualExpenseI18nService.getMessageBeginningGreeting())
+                .append(lineSeparator())
+                .append(lineSeparator())
+                .append(unusualExpenseI18nService.getExpenseLinesPrefix())
+                .append(lineSeparator())
+                .append(lineSeparator());
         unusualExpenses.stream()
                        // high to low expenses
                        .sorted(reverseOrder())
-                       .map(expense -> i18nService.getUnusualExpenseLine(expense.category(),
-                                                                         expense.amount()))
-                       .forEach(bodyBuilder::append);
-        bodyBuilder.append(i18nService.getMessageEnding());
-        return Optional.of(bodyBuilder.toString());
+                       .map(expense -> unusualExpenseI18nService.getUnusualExpenseLine(expense.category(),
+                                                                                       expense.amount()))
+                       .forEach(line -> bodyBuilder.append(line)
+                                                   .append(lineSeparator()));
+        return bodyBuilder.append(lineSeparator())
+                          .append(unusualExpenseI18nService.getMessageEndingGreeting())
+                          .append(lineSeparator())
+                          .append(commonI18nService.getCompanyName())
+                          .toString();
     }
 
 }

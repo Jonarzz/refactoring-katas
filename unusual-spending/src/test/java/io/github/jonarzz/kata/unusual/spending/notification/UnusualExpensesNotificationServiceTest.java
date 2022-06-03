@@ -1,10 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.ENTERTAINMENT;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.GOLF;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.RESTAURANTS;
-import static io.github.jonarzz.kata.unusual.spending.payment.Category.TRAVEL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.jonarzz.kata.unusual.spending.expense.FakeExpenseService;
@@ -15,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 class UnusualExpensesNotificationServiceTest {
+
+    static final MessageRegistry MESSAGE_REGISTRY = new MessageRegistry();
 
     @Test
     void noUnusualExpenses() {
@@ -29,7 +27,7 @@ class UnusualExpensesNotificationServiceTest {
     @Test
     void singleUnusualExpense() {
         var notificationService = createServiceReturning(Map.of(
-                GOLF, usd(123, 85)
+                Category.named("GOLF"), usd(123, 85)
         ));
 
         var body = notificationService.createNotificationBody();
@@ -49,9 +47,9 @@ class UnusualExpensesNotificationServiceTest {
     @Test
     void multipleUnusualExpenses_expensesAreSortedHighToLow() {
         var notificationService = createServiceReturning(Map.of(
-                RESTAURANTS, usd(58, 23),
-                TRAVEL, usd(990, 99),
-                ENTERTAINMENT, usd(257, 13)
+                Category.named("RESTAURANTS"), usd(58, 23),
+                Category.named("traVEL"), usd(990, 99),
+                Category.named("enTERTAINment"), usd(257, 13)
         ));
 
         var body = notificationService.createNotificationBody();
@@ -73,6 +71,7 @@ class UnusualExpensesNotificationServiceTest {
 
     private UnusualExpensesNotificationService createServiceReturning(Map<Category, Cost> stubbedExpenses) {
         return new UnusualExpensesNotificationService(new FakeExpenseService(stubbedExpenses),
-                                                      new UnusualExpenseI18nService(new MessageRegistry()));
+                                                      new CommonI18nService(MESSAGE_REGISTRY),
+                                                      new UnusualExpenseI18nService(MESSAGE_REGISTRY));
     }
 }

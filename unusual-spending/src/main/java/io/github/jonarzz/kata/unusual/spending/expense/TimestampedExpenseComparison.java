@@ -1,83 +1,72 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
+import io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy;
+import io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
-import io.github.jonarzz.kata.unusual.spending.payment.GroupingPolicy;
-import io.github.jonarzz.kata.unusual.spending.payment.Timespan;
 
-public class TimestampedExpenseComparison {
+import java.math.BigInteger;
 
-    final Timespan comparedTimespan;
+public class TimestampedExpenseComparison implements
+        TimestampedExpenseComparisonApi.WithId,
+        TimestampedExpenseComparisonApi.WithComparedTimespan,
+        TimestampedExpenseComparisonApi.WithGrouping,
+        TimestampedExpenseComparisonApi.WithBaseTimespan {
 
-    private TimestampedExpenseComparison(Timespan comparedTimespan) {
+    private BigInteger userId;
+    private AggregationTimespan comparedTimespan;
+    private AggregationPolicy<Category> aggregationPolicy;
+    private AggregationTimespan baseTimespan;
+    private SpendingThreshold threshold;
+
+    private TimestampedExpenseComparison(BigInteger userId) {
+        this.userId = userId;
+    }
+
+    public static TimestampedExpenseComparisonApi.WithId forUserId(BigInteger userId) {
+        return new TimestampedExpenseComparison(userId);
+    }
+
+    @Override
+    public TimestampedExpenseComparisonApi.WithComparedTimespan aggregateExpenses(AggregationTimespan comparedTimespan) {
         this.comparedTimespan = comparedTimespan;
+        return this;
     }
 
-    public WithGrouping groupedBy(GroupingPolicy<Category> groupingPolicy) {
-        return new WithGrouping(comparedTimespan, groupingPolicy);
+    @Override
+    public TimestampedExpenseComparisonApi.WithGrouping groupedBy(AggregationPolicy<Category> aggregationPolicy) {
+        this.aggregationPolicy = aggregationPolicy;
+        return this;
     }
 
-    public static class WithGrouping extends TimestampedExpenseComparison {
-
-        final GroupingPolicy<Category> groupingPolicy;
-
-        private WithGrouping(Timespan comparedTimespan, GroupingPolicy<Category> groupingPolicy) {
-            super(comparedTimespan);
-            this.groupingPolicy = groupingPolicy;
-        }
-
-        public WithTimestamps comparedToExpenses(Timespan baseTimespan) {
-            return new WithTimestamps(comparedTimespan, groupingPolicy, baseTimespan);
-        }
+    @Override
+    public TimestampedExpenseComparisonApi.WithBaseTimespan comparedToAggregatedExpenses(AggregationTimespan baseTimespan) {
+        this.baseTimespan = baseTimespan;
+        return this;
     }
 
-    public static class WithTimestamps extends WithGrouping {
-
-        final Timespan baseTimespan;
-
-        private WithTimestamps(Timespan comparedTimespan, GroupingPolicy<Category> groupingPolicy, Timespan baseTimespan) {
-            super(comparedTimespan, groupingPolicy);
-            this.baseTimespan = baseTimespan;
-        }
-
-        public WithThreshold increasedByAtLeast(ThresholdValue thresholdValue) {
-            var threshold = new ExpensesIncreasedByAtLeast(thresholdValue);
-            return matching(threshold);
-        }
-
-        WithThreshold matching(SpendingThreshold threshold) {
-            return new WithThreshold(comparedTimespan, groupingPolicy, baseTimespan, threshold);
-        }
+    @Override
+    public TimestampedExpenseComparison increasedByAtLeast(ThresholdValue thresholdValue) {
+        threshold = new ExpensesIncreasedByAtLeast(thresholdValue);
+        return this;
     }
 
-    public static class WithThreshold extends WithTimestamps {
-
-        private final SpendingThreshold threshold;
-
-        private WithThreshold(Timespan comparedTimespan, GroupingPolicy<Category> groupingPolicy,
-                              Timespan baseTimespan, SpendingThreshold threshold) {
-            super(comparedTimespan, groupingPolicy, baseTimespan);
-            this.threshold = threshold;
-        }
-
-        public static TimestampedExpenseComparison expenses(Timespan comparedTimespan) {
-            return new TimestampedExpenseComparison(comparedTimespan);
-        }
-
-        Timespan comparedTimespan() {
-            return comparedTimespan;
-        }
-
-        GroupingPolicy<Category> groupingPolicy() {
-            return groupingPolicy;
-        }
-
-        Timespan baseTimespan() {
-            return baseTimespan;
-        }
-
-        SpendingThreshold threshold() {
-            return threshold;
-        }
+    BigInteger userId() {
+        return userId;
     }
 
+    AggregationTimespan comparedTimespan() {
+        return comparedTimespan;
+    }
+
+    AggregationPolicy<Category> groupingPolicy() {
+        return aggregationPolicy;
+    }
+
+    AggregationTimespan baseTimespan() {
+        return baseTimespan;
+    }
+
+    SpendingThreshold threshold() {
+        return threshold;
+    }
 }

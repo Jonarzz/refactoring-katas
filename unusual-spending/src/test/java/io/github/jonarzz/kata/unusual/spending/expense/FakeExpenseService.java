@@ -16,7 +16,7 @@ public class FakeExpenseService extends ExpenseService {
     }
 
     @Override
-    public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison.WithThreshold expenseComparison) {
+    public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison expenseComparison) {
         return totalExpensesByCategory.entrySet()
                                       .stream()
                                       .map((entry) -> new CategorizedExpense(entry.getKey(), entry.getValue()))
