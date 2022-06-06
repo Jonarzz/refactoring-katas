@@ -1,0 +1,14 @@
+payer_id,amount,currency,category,description,time
+1,190.99,USD,travel,Some test description,2022-05-01T00:00:01
+1,11.99,USD,groceries,Other test description,2022-05-04T07:11:33
+1,24.99,USD,golf,Different test description,2022-05-21T21:13:52
+1,89.23,USD,groceries,Some test description,2022-05-18T16:14:37
+2,22.71,USD,groceries,Some test description,2022-05-26T15:09:01
+1,277.55,USD,travel,Some test description,2022-05-31T23:59:59
+1,17.05,USD,groceries,Some test description,2022-06-01T00:00:01
+1,700.59,USD,travel,Some test description,2022-06-02T20:11:24
+2,133.99,USD,travel,Some test description,2022-06-03T10:17:39
+1,29.11,USD,groceries,Some test description,2022-06-04T19:07:54
+1,100.03,USD,travel,Some test description,2022-06-13T11:07:54
+1,34.55,USD,restaurants,Some test description,2022-06-27T19:57:33
+1,10.00,USD,restaurants,Last test description,2022-06-27T19:57:51

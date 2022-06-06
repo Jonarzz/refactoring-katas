@@ -18,13 +18,24 @@ public class Cost implements Comparable<Cost> {
 
     public static Cost create(int basicUnits, int cents, Currency currency) {
         if (basicUnits < 0 || cents < 0) {
-            throw new IllegalArgumentException("Price cannot be a negative number");
+            throw new IllegalArgumentException("Cost cannot be a negative number");
         }
         return new Cost(currency, valueOf(basicUnits).add(valueOf(cents, 2)));
     }
 
+    public static Cost create(double amount, Currency currency) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Cost cannot be a negative number");
+        }
+        return new Cost(currency, valueOf(amount));
+    }
+
     public static Cost usd(int dollars, int cents) {
         return create(dollars, cents, USD);
+    }
+
+    public static Cost usd(double amount) {
+        return create(amount, USD);
     }
 
     public Cost add(Cost other) {

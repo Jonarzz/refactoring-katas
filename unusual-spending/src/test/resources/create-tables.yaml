@@ -1,0 +1,91 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-tables
+      author: jonasz
+      changes:
+        - createTable:
+            tableName: category
+            columns:
+              - column:
+                  name: name
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+        - createTable:
+            tableName: currency
+            columns:
+              - column:
+                  name: alpha_code
+                  type: varchar(3)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: language_tag
+                  type: varchar(5)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              # TODO rest of the columns
+        - createTable:
+            tableName: payment
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: amount
+                  type: decimal(10, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency
+                  type: varchar(3)
+                  constraints:
+                    foreignKeyName: fk_payment_currency
+                    referencedTableName: currency
+                    referencedColumnNames: alpha_code
+                    nullable: false
+              - column:
+                  name: category
+                  type: varchar(50)
+                  constraints:
+                    foreignKeyName: fk_payment_category
+                    referencedTableName: category
+                    referencedColumnNames: name
+                    nullable: false
+              - column:
+                  name: payer_id
+                  type: int
+                  constraints:
+                    foreignKeyName: fk_payment_user
+                    referencedTableName: user
+                    referencedColumnNames: id
+                    nullable: false
+              - column:
+                  name: description
+                  type: varchar(100)
+              - column:
+                  name: time
+                  type: timestamp
+                  constraints:
+                    nullable: false

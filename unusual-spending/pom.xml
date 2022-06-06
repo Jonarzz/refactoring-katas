@@ -13,7 +13,34 @@
     <name>Unusual Spending kata</name>
     <url>https://kata-log.rocks/unusual-spending-kata</url>
 
+    <properties>
+        <liquibase-properties.file-path>
+            ${project.basedir}/src/test/resources/liquibase.properties
+        </liquibase-properties.file-path>
+        <!-- versions -->
+        <jooq.version>3.16.6</jooq.version>
+        <h2.version>2.1.212</h2.version>
+        <liquibase.version>4.11.0</liquibase.version>
+        <snakeyaml.version>1.30</snakeyaml.version>
+    </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>${snakeyaml.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -31,5 +58,30 @@
             <artifactId>mockito-core</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>${project.basedir}/src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <propertyFile>${liquibase-properties.file-path}</propertyFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertiesFile>${liquibase-properties.file-path}</systemPropertiesFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

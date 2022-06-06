@@ -20,7 +20,7 @@ public class PaymentService {
         return paymentRepository.getUserPaymentsBetween(userId, timespan.start(), timespan.end())
                                 .stream()
                                 .collect(toMap(policy,
-                                               Payment::price,
+                                               Payment::cost,
                                                Cost::add));
     }
 

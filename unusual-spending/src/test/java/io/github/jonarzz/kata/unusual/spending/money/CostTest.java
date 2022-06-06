@@ -43,13 +43,19 @@ class CostTest {
         @Test
         void tryToCreatePriceWithNegativeDollarsValue() {
             assertThatThrownBy(() -> usd(-1, 0))
-                    .hasMessage("Price cannot be a negative number");
+                    .hasMessage("Cost cannot be a negative number");
         }
 
         @Test
         void tryToCreatePriceWithNegativeCentsValue() {
             assertThatThrownBy(() -> usd(0, -1))
-                    .hasMessage("Price cannot be a negative number");
+                    .hasMessage("Cost cannot be a negative number");
+        }
+
+        @Test
+        void tryToCreatePriceWithNegativeAmount() {
+            assertThatThrownBy(() -> usd(-1.50))
+                    .hasMessage("Cost cannot be a negative number");
         }
 
     }
