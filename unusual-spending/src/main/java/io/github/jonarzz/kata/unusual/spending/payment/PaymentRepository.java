@@ -21,7 +21,9 @@ class PaymentRepository {
     }
 
     private String prepareSql(BigInteger userId, LocalDateTime from, LocalDateTime to) {
-        var sqlTemplate = "SELECT category, currency, amount FROM payment "
+        var sqlTemplate = "SELECT p.category, p.amount, c.alpha_code, c.language_tag "
+                          + "FROM payment p "
+                          + "JOIN currency c ON p.currency = c.alpha_code "
                           + "WHERE payer_id = %s "
                           + "AND time >= TIMESTAMP '%s' "
                           + "AND time <= TIMESTAMP '%s'";

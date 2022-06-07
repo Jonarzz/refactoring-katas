@@ -1,19 +1,24 @@
 package io.github.jonarzz.kata.unusual.spending.money;
 
-import static java.util.Locale.US;
-
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Objects;
 
-public enum Currency {
+public class Currency {
 
-    USD(US);
+    public static final Currency USD = new Currency("USD", Locale.US);
 
+    private final String alphaCode;
     private final Locale locale;
 
-    Currency(Locale locale) {
+    private Currency(String alphaCode, Locale locale) {
+        this.alphaCode = alphaCode;
         this.locale = locale;
+    }
+
+    public static Currency create(String alphaCode, Locale locale) {
+        return new Currency(alphaCode, locale);
     }
 
     public String format(BigDecimal price) {
@@ -21,4 +26,25 @@ public enum Currency {
                            .format(price.doubleValue());
     }
 
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Currency currency)) {
+            return false;
+        }
+        return alphaCode.equals(currency.alphaCode)
+               && locale.equals(currency.locale);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(alphaCode, locale);
+    }
+
+    @Override
+    public String toString() {
+        return "Currency{alphaCode='%s', locale=%s}".formatted(alphaCode, locale);
+    }
 }
