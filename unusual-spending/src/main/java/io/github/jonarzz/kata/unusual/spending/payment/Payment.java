@@ -2,14 +2,22 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 
+import java.util.Optional;
+
 class Payment {
 
-    private Category category;
-    private Cost cost;
+    private final Category category;
+    private final Cost cost;
+
+    private String description;
 
     Payment(Category category, Cost expense) {
         this.category = category;
         cost = expense;
+    }
+
+    void describedAs(String description) {
+        this.description = description;
     }
 
     Category category() {
@@ -20,4 +28,7 @@ class Payment {
         return cost;
     }
 
+    Optional<String> description() {
+        return Optional.ofNullable(description);
+    }
 }

@@ -29,6 +29,12 @@ public class UnusualExpensesNotificationService {
         this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
+    // TODO web api
+    // TODO triggered as a scheduled task
+    // TODO mail sending package
+    // TODO user package + persistence + web api
+    // TODO divide into modules -> microservices
+
     public Optional<String> createNotificationBody(BigInteger userId) {
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);

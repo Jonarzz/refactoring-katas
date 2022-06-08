@@ -15,6 +15,8 @@ public class ExpenseService {
         this.paymentService = paymentService;
     }
 
+    // TODO web api
+
     public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison expenseComparison) {
         var userId = expenseComparison.userId();
         var policy = expenseComparison.groupingPolicy();

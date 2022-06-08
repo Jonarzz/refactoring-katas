@@ -9,81 +9,173 @@ import static java.time.Month.JUNE;
 import static java.time.Month.MAY;
 import static java.time.YearMonth.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
+import io.github.jonarzz.kata.unusual.spending.money.Cost;
+import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.test.LiquibaseExtension;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(LiquibaseExtension.class)
+import java.math.BigInteger;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
 
     PaymentRepository repository = new PaymentRepository();
 
-    @Test
-    void getUserPaymentsBetween_firstUserInMay() {
-        var userId = ONE;
-        var timespan = fromWhole(of(2022, MAY));
+    @Nested
+    @ExtendWith(LiquibaseExtension.class)
+    class GetUserPaymentsBetween {
 
-        var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+        @Test
+        void firstUserInMay() {
+            var userId = ONE;
+            var timespan = fromWhole(of(2022, MAY));
 
-        assertThat(results)
-                .extracting("category.name", "cost.amount", "cost.currency")
-                .containsExactly(
-                        tuple("travel",    valueOf(190.99), USD),
-                        tuple("groceries", valueOf(11.99),  USD),
-                        tuple("golf",      valueOf(24.99),  USD),
-                        tuple("groceries", valueOf(89.23),  USD),
-                        tuple("travel",    valueOf(277.55), USD)
-                );
+            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+
+            assertThat(results)
+                    .extracting("category.name", "cost.amount", "cost.currency")
+                    .containsExactly(
+                            tuple("travel", valueOf(190.99), USD),
+                            tuple("groceries", valueOf(11.99), USD),
+                            tuple("golf", valueOf(24.99), USD),
+                            tuple("groceries", valueOf(89.23), USD),
+                            tuple("travel", valueOf(277.55), USD)
+                    );
+        }
+
+        @Test
+        void secondUserInMay() {
+            var userId = TWO;
+            var timespan = fromWhole(of(2022, MAY));
+
+            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+
+            assertThat(results)
+                    .extracting("category.name", "cost.amount", "cost.currency")
+                    .containsExactly(
+                            tuple("groceries", valueOf(22.71), USD)
+                    );
+        }
+
+        @Test
+        void firstUserInJune() {
+            var userId = ONE;
+            var timespan = fromWhole(of(2022, JUNE));
+
+            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+
+            assertThat(results)
+                    .extracting("category.name", "cost.amount", "cost.currency")
+                    .containsExactly(
+                            tuple("groceries", valueOf(17.05), USD),
+                            tuple("travel", valueOf(700.59), USD),
+                            tuple("groceries", valueOf(29.11), USD),
+                            tuple("travel", valueOf(100.03), USD),
+                            tuple("restaurants", valueOf(34.55), USD),
+                            tuple("restaurants", valueOf(10.00), USD)
+                    );
+        }
+
+        @Test
+        void secondUserInJune() {
+            var userId = TWO;
+            var timespan = fromWhole(of(2022, JUNE));
+
+            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+
+            assertThat(results)
+                    .extracting("category.name", "cost.amount", "cost.currency")
+                    .containsExactly(
+                            tuple("travel", valueOf(133.99), USD)
+                    );
+        }
+
     }
 
-    @Test
-    void getUserPaymentsBetween_secondUserInMay() {
-        var userId = TWO;
-        var timespan = fromWhole(of(2022, MAY));
+    @Nested
+    @ExtendWith(LiquibaseExtension.class)
+    class SavePayment {
 
-        var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+        // in case of any errors GetUserPaymentsBetween tests should be fixed first
 
-        assertThat(results)
-                .extracting("category.name", "cost.amount", "cost.currency")
-                .containsExactly(
-                        tuple("groceries", valueOf(22.71), USD)
-                );
+        @Test
+        void tryToSave_userWithGivenIdDoesNotExist() {
+            assertThatThrownBy(() -> repository.save(BigInteger.TEN, null))
+                    .hasMessage("Payer with ID 10 does not exist");
+        }
+
+        @Test
+        void save_currencyAndCategoryAlreadyExistInDatabase() {
+            var payerId = ONE;
+            var categoryName = "golf";
+            var amount = 33.99;
+            var currency = USD;
+
+            saveAndAssert(payerId, categoryName, amount, currency);
+        }
+
+        @Test
+        void save_categoryDoesNotExistInDatabase() {
+            var payerId = TWO;
+            var categoryName = "subscriptions";
+            var amount = 40.99;
+            var currency = USD;
+
+            saveAndAssert(payerId, categoryName, amount, currency);
+        }
+
+        @Test
+        void save_currencyDoesNotExistInDatabase() {
+            var payerId = ONE;
+            var categoryName = "travel";
+            var amount = 2500.00;
+            var currency = Currency.create("PLN", "pl-PL");
+
+            saveAndAssert(payerId, categoryName, amount, currency);
+        }
+
+        private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency) {
+            var payment = new Payment(Category.named(categoryName),
+                                      Cost.create(amount, currency));
+            var timeBefore = LocalDateTime.now();
+
+            repository.save(payerId, payment);
+
+            var saved = repository.getUserPaymentsBetween(payerId, timeBefore, LocalDateTime.now());
+            assertThat(saved)
+                    .extracting("category.name", "cost.amount", "cost.currency")
+                    .containsExactly(
+                            tuple(categoryName, valueOf(amount), currency)
+                    );
+        }
+
     }
 
-    @Test
-    void getUserPaymentsBetween_firstUserInJune() {
-        var userId = ONE;
-        var timespan = fromWhole(of(2022, JUNE));
+    @Nested
+    class DatabaseExceptionHandling {
 
-        var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+        PaymentRepository invalidRepository = new PaymentRepository(
+                "invalid url",
+                "invalid user",
+                "invalid password"
+        );
 
-        assertThat(results)
-                .extracting("category.name", "cost.amount", "cost.currency")
-                .containsExactly(
-                        tuple("groceries",   valueOf(17.05),  USD),
-                        tuple("travel",      valueOf(700.59), USD),
-                        tuple("groceries",   valueOf(29.11),  USD),
-                        tuple("travel",      valueOf(100.03), USD),
-                        tuple("restaurants", valueOf(34.55),  USD),
-                        tuple("restaurants", valueOf(10.00),  USD)
-                );
-    }
+        @Test
+        void exceptionThrownWhenNoSuitableDriverExistsForGivenUrl() {
+            var payerId = ONE;
+            var timestamp = LocalDateTime.now();
 
-    @Test
-    void getUserPaymentsBetween_secondUserInJune() {
-        var userId = TWO;
-        var timespan = fromWhole(of(2022, JUNE));
+            assertThatThrownBy(() -> invalidRepository.getUserPaymentsBetween(payerId, timestamp, timestamp))
+                    .hasCauseInstanceOf(SQLException.class);
+        }
 
-        var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
-
-        assertThat(results)
-                .extracting("category.name", "cost.amount", "cost.currency")
-                .containsExactly(
-                        tuple("travel", valueOf(133.99), USD)
-                );
     }
 
 }

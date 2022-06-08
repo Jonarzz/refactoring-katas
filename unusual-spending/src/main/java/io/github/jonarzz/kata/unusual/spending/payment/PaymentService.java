@@ -15,6 +15,8 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
+    // TODO payment saving + web API
+
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
                                                          BigInteger userId, AggregationTimespan timespan) {
         return paymentRepository.getUserPaymentsBetween(userId, timespan.start(), timespan.end())

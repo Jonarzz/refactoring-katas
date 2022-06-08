@@ -22,17 +22,12 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: name
-                  type: varchar(100)
-                  constraints:
-                    nullable: false
-              - column:
                   name: language_tag
                   type: varchar(5)
                   constraints:
                     nullable: false
         - createTable:
-            tableName: user
+            tableName: payer
             columns:
               - column:
                   name: id
@@ -41,7 +36,6 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     nullable: false
-              # TODO rest of the columns
         - createTable:
             tableName: payment
             columns:
@@ -77,8 +71,8 @@ databaseChangeLog:
                   name: payer_id
                   type: int
                   constraints:
-                    foreignKeyName: fk_payment_user
-                    referencedTableName: user
+                    foreignKeyName: fk_payment_payer
+                    referencedTableName: payer
                     referencedColumnNames: id
                     nullable: false
               - column:

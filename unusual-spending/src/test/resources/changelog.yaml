@@ -1,23 +1,5 @@
 databaseChangeLog:
   - include:
       file: create-tables.yaml
-  - changeSet:
-      id: insert-test-data
-      author: jonasz
-      changes:
-        - loadData:
-            tableName: category
-            file: data/category.csv
-            relativeToChangelogFile: true
-        - loadData:
-            tableName: currency
-            file: data/currency.csv
-            relativeToChangelogFile: true
-        - loadData:
-            tableName: user
-            file: data/user.csv
-            relativeToChangelogFile: true
-        - loadData:
-            tableName: payment
-            file: data/payment.csv
-            relativeToChangelogFile: true
+  - include:
+      file: data/insert.yaml

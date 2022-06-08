@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-test-data
+      author: jonasz
+      runAlways: true
+      changes:
+        - delete:
+            tableName: payment
+        - delete:
+            tableName: payer
+        - delete:
+            tableName: currency
+        - delete:
+            tableName: category
+        - loadData:
+            tableName: category
+            file: category.csv
+            relativeToChangelogFile: true
+        - loadData:
+            tableName: currency
+            file: currency.csv
+            relativeToChangelogFile: true
+        - loadData:
+            tableName: payer
+            file: payer.csv
+            relativeToChangelogFile: true
+        - loadData:
+            tableName: payment
+            file: payment.csv
+            relativeToChangelogFile: true
