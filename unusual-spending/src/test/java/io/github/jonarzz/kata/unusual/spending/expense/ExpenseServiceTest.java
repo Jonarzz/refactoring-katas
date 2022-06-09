@@ -125,7 +125,7 @@ class ExpenseServiceTest {
                                                         .increasedByAtLeast(percentage(10)));
 
         assertThat(payments)
-                .extracting(CategorizedExpense::category, CategorizedExpense::amount)
+                .extracting(UnusualExpense::category, UnusualExpense::amount)
                 .containsExactly(
                         tuple("travel", "$500.75")
                 );
@@ -151,7 +151,7 @@ class ExpenseServiceTest {
                                                         .increasedByAtLeast(percentage(0)));
 
         assertThat(payments)
-                .extracting(CategorizedExpense::category, CategorizedExpense::amount)
+                .extracting(UnusualExpense::category, UnusualExpense::amount)
                 .containsExactly(
                         tuple("golf", "$505.99")
                 );

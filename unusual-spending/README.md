@@ -25,3 +25,6 @@ for which spending was unusually high, with a subject like
 
     Love,
     The Credit Card Company
+
+## Simple event storming
+![Event storming result](event-storming.png)

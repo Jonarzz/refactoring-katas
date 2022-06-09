@@ -5,12 +5,12 @@ import io.github.jonarzz.kata.unusual.spending.payment.Category;
 
 import java.util.Objects;
 
-public class CategorizedExpense implements Comparable<CategorizedExpense> {
+public class UnusualExpense implements Comparable<UnusualExpense> {
 
     private Category category;
     private Cost amount;
 
-    CategorizedExpense(Category category, Cost amount) {
+    UnusualExpense(Category category, Cost amount) {
         this.category = category;
         this.amount = amount;
     }
@@ -25,7 +25,7 @@ public class CategorizedExpense implements Comparable<CategorizedExpense> {
     }
 
     @Override
-    public int compareTo(CategorizedExpense other) {
+    public int compareTo(UnusualExpense other) {
         return amount.compareTo(other.amount);
     }
 
@@ -34,7 +34,7 @@ public class CategorizedExpense implements Comparable<CategorizedExpense> {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof CategorizedExpense that)) {
+        if (!(other instanceof UnusualExpense that)) {
             return false;
         }
         return category == that.category

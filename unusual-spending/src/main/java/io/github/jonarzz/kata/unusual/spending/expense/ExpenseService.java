@@ -15,14 +15,14 @@ public class ExpenseService {
         this.paymentService = paymentService;
     }
 
-    // TODO web api
+    // TODO web api (REST)
 
-    public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison expenseComparison) {
+    public Collection<UnusualExpense> calculate(TimestampedExpenseComparison expenseComparison) {
         var userId = expenseComparison.userId();
         var policy = expenseComparison.groupingPolicy();
         var baseExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, expenseComparison.baseTimespan());
         var comparedExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, expenseComparison.comparedTimespan());
-        Collection<CategorizedExpense> paymentsMatchingThreshold = new HashSet<>();
+        Collection<UnusualExpense> paymentsMatchingThreshold = new HashSet<>();
         for (var categoryToCurrentExpense : comparedExpenses.entrySet()) {
             var category = categoryToCurrentExpense.getKey();
             var current = categoryToCurrentExpense.getValue();
@@ -30,7 +30,7 @@ public class ExpenseService {
             if (expense(current)
                     .comparedTo(base)
                     .satisfiesThreshold(expenseComparison.threshold())) {
-                paymentsMatchingThreshold.add(new CategorizedExpense(category, current));
+                paymentsMatchingThreshold.add(new UnusualExpense(category, current));
             }
         }
         return paymentsMatchingThreshold;

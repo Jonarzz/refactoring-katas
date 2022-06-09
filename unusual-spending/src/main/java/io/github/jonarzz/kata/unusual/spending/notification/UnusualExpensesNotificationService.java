@@ -7,8 +7,8 @@ import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespa
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.reverseOrder;
 
-import io.github.jonarzz.kata.unusual.spending.expense.CategorizedExpense;
 import io.github.jonarzz.kata.unusual.spending.expense.ExpenseService;
+import io.github.jonarzz.kata.unusual.spending.expense.UnusualExpense;
 
 import java.math.BigInteger;
 import java.time.YearMonth;
@@ -29,11 +29,16 @@ public class UnusualExpensesNotificationService {
         this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
-    // TODO web api
-    // TODO triggered as a scheduled task
-    // TODO mail sending package
-    // TODO user package + persistence + web api
+    // TODO web api (REST)
+    // TODO mail sending package + web api displaying notifications sent (GraphQL)
+    // TODO user package + persistence + web api (GraphQL)
     // TODO divide into modules -> microservices
+    // TODO triggered as a scheduled task (external service)
+    // TODO Docker/Kubernetes
+    // TODO logging + elastic
+    // TODO Prometheus
+    // TODO front-end
+    // TODO Cypress tests
 
     public Optional<String> createNotificationBody(BigInteger userId) {
         var currentMonth = YearMonth.now();
@@ -49,7 +54,7 @@ public class UnusualExpensesNotificationService {
         return Optional.of(buildNotification(unusualExpenses));
     }
 
-    private String buildNotification(Collection<CategorizedExpense> unusualExpenses) {
+    private String buildNotification(Collection<UnusualExpense> unusualExpenses) {
         var bodyBuilder = new StringBuilder(unusualExpenseI18nService.getMessageBeginningGreeting())
                 .append(lineSeparator())
                 .append(lineSeparator())

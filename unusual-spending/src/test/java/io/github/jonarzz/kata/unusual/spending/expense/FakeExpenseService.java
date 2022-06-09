@@ -16,10 +16,10 @@ public class FakeExpenseService extends ExpenseService {
     }
 
     @Override
-    public Collection<CategorizedExpense> calculate(TimestampedExpenseComparison expenseComparison) {
+    public Collection<UnusualExpense> calculate(TimestampedExpenseComparison expenseComparison) {
         return totalExpensesByCategory.entrySet()
                                       .stream()
-                                      .map((entry) -> new CategorizedExpense(entry.getKey(), entry.getValue()))
+                                      .map((entry) -> new UnusualExpense(entry.getKey(), entry.getValue()))
                                       .toList();
     }
 

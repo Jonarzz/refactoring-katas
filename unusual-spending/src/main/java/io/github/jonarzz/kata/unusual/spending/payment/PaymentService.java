@@ -15,7 +15,9 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    // TODO payment saving + web API
+    // TODO remove saving an payment "now" from repository
+    // TODO payment saving from JMS queue
+    // TODO web API (GraphQL)
 
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
                                                          BigInteger userId, AggregationTimespan timespan) {
