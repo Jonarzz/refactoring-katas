@@ -30,7 +30,7 @@ class ThresholdMatcherCreator {
             if (baseCost == null) {
                 return false;
             }
-            if (baseCost.currency() != comparedCost.currency()) {
+            if (!baseCost.currency().equals(comparedCost.currency())) {
                 return false;
             }
             return threshold.thresholdReached(baseCost.amount(), comparedCost.amount());

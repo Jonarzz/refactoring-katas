@@ -6,6 +6,10 @@ import io.github.jonarzz.kata.unusual.spending.payment.Category;
 
 public class TimestampedExpenseComparisonApi {
 
+    private TimestampedExpenseComparisonApi() {
+
+    }
+
     public interface WithId {
 
         WithComparedTimespan aggregateExpenses(AggregationTimespan comparedTimespan);

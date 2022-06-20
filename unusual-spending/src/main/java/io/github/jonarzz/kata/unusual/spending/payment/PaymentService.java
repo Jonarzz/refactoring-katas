@@ -15,17 +15,21 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    // TODO remove saving an payment "now" from repository
-    // TODO payment saving from JMS queue
+    // TODO add logging
     // TODO web API (GraphQL)
 
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
                                                          BigInteger userId, AggregationTimespan timespan) {
-        return paymentRepository.getUserPaymentsBetween(userId, timespan.start(), timespan.end())
+        return paymentRepository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end())
                                 .stream()
                                 .collect(toMap(policy,
-                                               Payment::cost,
+                                               PaymentDetails::cost,
                                                Cost::add));
+    }
+
+    public void save(Payment payment) {
+        // TODO payment saving from JMS queue
+        paymentRepository.save(payment);
     }
 
 }

@@ -1,13 +1,11 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Currency.USD;
-import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
 import static java.math.BigDecimal.valueOf;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TWO;
 import static java.time.Month.JUNE;
 import static java.time.Month.MAY;
-import static java.time.YearMonth.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -21,7 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.math.BigInteger;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.YearMonth;
+import java.util.UUID;
 
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
@@ -35,9 +35,9 @@ class PaymentRepositoryTest {
         @Test
         void firstUserInMay() {
             var userId = ONE;
-            var timespan = fromWhole(of(2022, MAY));
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
-            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -53,9 +53,9 @@ class PaymentRepositoryTest {
         @Test
         void secondUserInMay() {
             var userId = TWO;
-            var timespan = fromWhole(of(2022, MAY));
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
-            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -67,9 +67,9 @@ class PaymentRepositoryTest {
         @Test
         void firstUserInJune() {
             var userId = ONE;
-            var timespan = fromWhole(of(2022, JUNE));
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
-            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -86,9 +86,9 @@ class PaymentRepositoryTest {
         @Test
         void secondUserInJune() {
             var userId = TWO;
-            var timespan = fromWhole(of(2022, JUNE));
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
-            var results = repository.getUserPaymentsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -107,7 +107,9 @@ class PaymentRepositoryTest {
 
         @Test
         void tryToSave_userWithGivenIdDoesNotExist() {
-            assertThatThrownBy(() -> repository.save(BigInteger.TEN, null))
+            var payment = new Payment(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
+
+            assertThatThrownBy(() -> repository.save(payment))
                     .hasMessage("Payer with ID 10 does not exist");
         }
 
@@ -142,13 +144,14 @@ class PaymentRepositoryTest {
         }
 
         private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency) {
-            var payment = new Payment(Category.named(categoryName),
-                                      Cost.create(amount, currency));
-            var timeBefore = LocalDateTime.now();
+            var details = new PaymentDetails(Category.named(categoryName),
+                                             Cost.create(amount, currency));
+            var timeBefore = OffsetDateTime.now();
+            var payment = new Payment(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
 
-            repository.save(payerId, payment);
+            repository.save(payment);
 
-            var saved = repository.getUserPaymentsBetween(payerId, timeBefore, LocalDateTime.now());
+            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, OffsetDateTime.now());
             assertThat(saved)
                     .extracting("category.name", "cost.amount", "cost.currency")
                     .containsExactly(
@@ -170,9 +173,9 @@ class PaymentRepositoryTest {
         @Test
         void exceptionThrownWhenNoSuitableDriverExistsForGivenUrl() {
             var payerId = ONE;
-            var timestamp = LocalDateTime.now();
+            var timestamp = OffsetDateTime.now();
 
-            assertThatThrownBy(() -> invalidRepository.getUserPaymentsBetween(payerId, timestamp, timestamp))
+            assertThatThrownBy(() -> invalidRepository.getPaymentDetailsBetween(payerId, timestamp, timestamp))
                     .hasCauseInstanceOf(SQLException.class);
         }
 

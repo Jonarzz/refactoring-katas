@@ -37,7 +37,7 @@ public class UnusualExpense implements Comparable<UnusualExpense> {
         if (!(other instanceof UnusualExpense that)) {
             return false;
         }
-        return category == that.category
+        return category.equals(that.category)
                && amount.equals(that.amount);
     }
 

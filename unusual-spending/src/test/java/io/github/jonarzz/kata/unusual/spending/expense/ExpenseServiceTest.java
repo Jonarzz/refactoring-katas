@@ -4,9 +4,9 @@ import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.per
 import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
 import static java.math.BigInteger.TWO;
-import static java.time.YearMonth.of;
+import static java.time.Month.APRIL;
+import static java.time.Month.MAY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,11 +15,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy;
+import io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
 import io.github.jonarzz.kata.unusual.spending.payment.PaymentService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.time.YearMonth;
 import java.util.Map;
 
 class ExpenseServiceTest {
@@ -27,14 +29,14 @@ class ExpenseServiceTest {
     static final BigInteger PAYER_ID = TWO;
 
     AggregationPolicy<Category> aggregationPolicy = category();
+    AggregationTimespan fromCurrentTimespan = AggregationTimespan.of(YearMonth.of(2022, APRIL));
+    AggregationTimespan fromPreviousTimespan = AggregationTimespan.of(YearMonth.of(2020, MAY));
 
     PaymentService paymentService = mock(PaymentService.class);
     ExpenseService expenseService = new ExpenseService(paymentService);
 
     @Test
     void noPaymentsInGivenTimespan() {
-        var fromPreviousTimespan = fromWhole(of(2020, 4));
-        var fromCurrentTimespan = fromWhole(of(2022, 5));
         when(paymentService.aggregateTotalUserExpensesBy(eq(aggregationPolicy), eq(PAYER_ID), any()))
                 .thenReturn(Map.of());
 
@@ -50,8 +52,6 @@ class ExpenseServiceTest {
 
     @Test
     void noPaymentsInPreviousTimespan_paymentsExistInCurrentTimespan() {
-        var fromCurrentTimespan = fromWhole(of(2022, 5));
-        var fromPreviousTimespan = fromWhole(of(2020, 4));
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromPreviousTimespan))
                 .thenReturn(Map.of());
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromCurrentTimespan))
@@ -69,8 +69,6 @@ class ExpenseServiceTest {
 
     @Test
     void paymentsExistInPreviousTimespan_noPaymentsInCurrentTimespan() {
-        var fromPreviousTimespan = fromWhole(of(2020, 4));
-        var fromCurrentTimespan = fromWhole(of(2022, 5));
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromPreviousTimespan))
                 .thenReturn(Map.of(Category.named("TRAVEL"), usd(250, 0)));
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromCurrentTimespan))
@@ -88,8 +86,6 @@ class ExpenseServiceTest {
 
     @Test
     void thresholdNotMetForCategoryPresentInPreviousAndCurrentTimespan() {
-        var fromPreviousTimespan = fromWhole(of(2020, 4));
-        var fromCurrentTimespan = fromWhole(of(2022, 5));
         var category = Category.named("TRAVEL");
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromPreviousTimespan))
                 .thenReturn(Map.of(category, usd(250, 0)));
@@ -109,8 +105,6 @@ class ExpenseServiceTest {
 
     @Test
     void thresholdMetForCategoryPresentInPreviousAndCurrentTimespan() {
-        var fromPreviousTimespan = fromWhole(of(2020, 4));
-        var fromCurrentTimespan = fromWhole(of(2022, 5));
         var category = Category.named("TRAVEL");
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromPreviousTimespan))
                 .thenReturn(Map.of(category, usd(250, 0)));
@@ -133,8 +127,6 @@ class ExpenseServiceTest {
 
     @Test
     void categoriesPartiallyOverlappingBetweenPreviousAndCurrentTimespan_matchingCategoryExpensesExceedThreshold() {
-        var fromCurrentTimespan = fromWhole(of(2022, 4));
-        var fromPreviousTimespan = fromWhole(of(2020, 5));
         var matchingCategory = Category.named("GOLF");
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromPreviousTimespan))
                 .thenReturn(Map.of(Category.named("TRAVEL"), usd(1050, 99),
@@ -156,5 +148,5 @@ class ExpenseServiceTest {
                         tuple("golf", "$505.99")
                 );
     }
-    
+
 }

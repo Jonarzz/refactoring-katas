@@ -2,9 +2,8 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
 import static java.math.BigInteger.ONE;
-import static java.time.YearMonth.of;
+import static java.time.Month.MAY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -24,7 +24,7 @@ import java.util.stream.IntStream;
 
 class PaymentServiceTest {
 
-    static final BigInteger PAYER_ID = ONE;
+    BigInteger payerId = ONE;
 
     PaymentRepository repository = mock(PaymentRepository.class);
     PaymentService aggregator = new PaymentService(repository);
@@ -32,12 +32,14 @@ class PaymentServiceTest {
     @Nested
     class CalculateTotalExpenseByCategory {
 
+        AggregationTimespan aggregationTimespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
+
         @Test
         void noPayments() {
-            when(repository.getUserPaymentsBetween(eq(PAYER_ID), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(List.of());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), PAYER_ID, fromWhole(of(2022, 5)));
+            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .isEmpty();
@@ -50,13 +52,13 @@ class PaymentServiceTest {
                     Category.named("GROCERIES"), usd(17, 33),
                     Category.named("TRAVEL"), usd(1999, 99)
             );
-            when(repository.getUserPaymentsBetween(eq(PAYER_ID), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(priceByCategory.entrySet()
                                                .stream()
-                                               .map(entry -> new Payment(entry.getKey(), entry.getValue()))
+                                               .map(entry -> new PaymentDetails(entry.getKey(), entry.getValue()))
                                                .toList());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), PAYER_ID, fromWhole(of(2022, 5)));
+            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsExactlyInAnyOrderEntriesOf(priceByCategory);
@@ -68,12 +70,12 @@ class PaymentServiceTest {
             Supplier<IntStream> dollarValuesSupplier = () -> IntStream.of(15, 21, 90, 123);
             var dollarsSum = dollarValuesSupplier.get()
                                                  .sum();
-            when(repository.getUserPaymentsBetween(eq(PAYER_ID), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(dollarValuesSupplier.get()
-                                                    .mapToObj(dollars -> new Payment(category, usd(dollars, 0)))
+                                                    .mapToObj(dollars -> new PaymentDetails(category, usd(dollars, 0)))
                                                     .toList());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), PAYER_ID, fromWhole(of(2022, 5)));
+            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(entry(category, usd(dollarsSum, 0)));
@@ -83,17 +85,17 @@ class PaymentServiceTest {
         void multiplePaymentsInMultipleCategories() {
             var categorySummingUpTo4 = Category.named("RESTAURANTS");
             var categorySummingUpTo2 = Category.named("GROCERIES");
-            when(repository.getUserPaymentsBetween(eq(PAYER_ID), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(List.of(
-                            new Payment(categorySummingUpTo4, usd(1, 0)),
-                            new Payment(categorySummingUpTo2, usd(1, 0)),
-                            new Payment(categorySummingUpTo4, usd(1, 0)),
-                            new Payment(categorySummingUpTo4, usd(1, 0)),
-                            new Payment(categorySummingUpTo2, usd(1, 0)),
-                            new Payment(categorySummingUpTo4, usd(1, 0))
+                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(categorySummingUpTo2, usd(1, 0)),
+                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(categorySummingUpTo2, usd(1, 0)),
+                            new PaymentDetails(categorySummingUpTo4, usd(1, 0))
                     ));
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), PAYER_ID, fromWhole(of(2022, 5)));
+            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(

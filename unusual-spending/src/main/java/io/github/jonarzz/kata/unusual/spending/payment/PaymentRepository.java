@@ -1,13 +1,13 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
-import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseFetchingAdapter;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseModifyingAdapter;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
@@ -28,7 +28,7 @@ class PaymentRepository {
         queryingAdapter = new DatabaseFetchingAdapter(url, user, password);
     }
 
-    Collection<Payment> getUserPaymentsBetween(BigInteger payerId, LocalDateTime from, LocalDateTime to) {
+    Collection<PaymentDetails> getPaymentDetailsBetween(BigInteger payerId, OffsetDateTime from, OffsetDateTime to) {
         var sqlTemplate = "SELECT p.category, p.amount, c.alpha_code, c.language_tag "
                           + "FROM payment p "
                           + "JOIN currency c ON p.currency = c.alpha_code "
@@ -41,27 +41,24 @@ class PaymentRepository {
         return queryingAdapter.fetch(formattedSql, new PaymentRepositoryResultMapper());
     }
 
-    void save(BigInteger payerId, Payment payment) {
-        saveTimestamped(payerId, payment, LocalDateTime.now());
-    }
-
-    // LocalDateTime used for simplicity - in an actual app it should be an Instant or ZonedDateTime
-    // (similar, but less obvious in querying - some edge data could be lost without defining a fixed time zone)
-    void saveTimestamped(BigInteger payerId, Payment payment, LocalDateTime paymentTime) {
+    public void save(Payment payment) {
+        var payerId = payment.payerId();
         if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = " + payerId)) {
             throw new IllegalStateException("Payer with ID " + payerId + " does not exist");
         }
-        var cost = payment.cost();
+        var details = payment.details();
+        var cost = details.cost();
         var currency = cost.currency();
         createCurrencyIfDoesNotExist(currency);
-        var category = payment.category();
+        var category = details.category();
         createCategoryIfDoesNotExist(category);
         modifyingAdapter.modify("INSERT INTO payment "
-                                + "(payer_id, amount, currency, category, time, description) "
-                                + "VALUES (%s, %s, '%s', '%s', '%s', %s)"
-                                        .formatted(payerId, cost.amount(), currency.alphaCode(), category,
-                                                   paymentTime.format(ISO_DATE_TIME),
-                                                   payment.description()
+                                + "(id, payer_id, amount, currency, category, time, description) "
+                                + "VALUES ('%s', %s, %s, '%s', '%s', '%s', %s)"
+                                        .formatted(payment.id(), payerId, cost.amount(), currency.alphaCode(), category,
+                                                   payment.timestamp()
+                                                          .format(ISO_OFFSET_DATE_TIME),
+                                                   details.description()
                                                           .map(description -> "'" + description + "'")
                                                           .orElse(null)));
     }
@@ -86,5 +83,4 @@ class PaymentRepository {
                                 + "VALUES ('%s')"
                                         .formatted(category));
     }
-
 }

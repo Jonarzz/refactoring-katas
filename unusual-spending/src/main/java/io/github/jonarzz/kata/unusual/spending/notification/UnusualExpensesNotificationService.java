@@ -3,7 +3,7 @@ package io.github.jonarzz.kata.unusual.spending.notification;
 import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
 import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
-import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.fromWhole;
+import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.of;
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.reverseOrder;
 
@@ -31,7 +31,7 @@ public class UnusualExpensesNotificationService {
 
     // TODO web api (REST)
     // TODO mail sending package + web api displaying notifications sent (GraphQL)
-    // TODO user package + persistence + web api (GraphQL)
+    // TODO user package + persistence + web api (GraphQL) + emitting events and receiving in other MS
     // TODO divide into modules -> microservices
     // TODO triggered as a scheduled task (external service)
     // TODO Docker/Kubernetes
@@ -44,9 +44,9 @@ public class UnusualExpensesNotificationService {
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);
         var unusualExpenses = expenseService.calculate(forUserId(userId)
-                                                               .aggregateExpenses(fromWhole(currentMonth))
+                                                               .aggregateExpenses(of(currentMonth))
                                                                .groupedBy(category())
-                                                               .comparedToAggregatedExpenses(fromWhole(previousMonth))
+                                                               .comparedToAggregatedExpenses(of(previousMonth))
                                                                .increasedByAtLeast(percentage(150)));
         if (unusualExpenses.isEmpty()) {
             return Optional.empty();
