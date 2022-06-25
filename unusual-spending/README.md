@@ -28,3 +28,48 @@ for which spending was unusually high, with a subject like
 
 ## Simple event storming
 ![Event storming result](event-storming.png)
+
+## Run locally
+
+1. Set up the Minikube environment:
+
+
+    eval $(minikube docker-env)
+
+2. Build the project using:
+
+
+    mvn clean package -Dquarkus.container-image.build=true
+
+(also creates a Jib image and Kubernetes configuration files in the `target/kubernetes/` directory)
+
+2. To load the image into the local Minikube instance use:
+
+
+    minikube image load io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT
+
+(image will not be reloaded if a pod in a deployment using the image is running - see: `kubectl scale` command below)
+
+3. (Re)load Kubernetes configuration:
+
+
+    kubectl apply -f target/kubernetes/kubernetes.yml
+
+(use `minikube.yml` for local development - exposes a NodePort, does not try to load images from the registry - uses Minikube images)
+
+
+Additional useful command examples:
+- `kubectl get svc` (also `deploy`, `pod`) - get state of running services (deploymens, pods)
+- `kubectl scale --replicas=0 deployment/unusual-spending` - stop all running pods in given deployment
+- `kubectl scale --replicas=1 deployment/unusual-spending` - start pods in given deployment (with no replication) 
+- `kubectl exec -it deploy/unusual-spending -- /bin/bash` - start executing commands inside given deployment;
+the command after `--` could be anything, e.g. it could be a `curl` command verifying if other deployment's service 
+is accessible from given deployment - in case of a single command the session quits after executing the command
+- `kubectl port-forward service/unusual-spending 8080:80` - run a tunnel forwarding the localhost port `8080` to the `80` port 
+in given service 
+- `minikube image ls --format table` - list Minikube images - by verifying image ID it's possible to check if the image was successfully reloaded 
+- `minikube image rm io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT` - remove the image from Minikube images
+- `minikube dashboard` - run a web-accessible dashboard showing the state of the cluster
+
+See [kubectl](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands) 
+and [minikube](https://minikube.sigs.k8s.io/docs/commands/) commands pages for more.

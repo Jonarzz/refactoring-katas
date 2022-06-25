@@ -14,17 +14,33 @@
     <url>https://kata-log.rocks/unusual-spending-kata</url>
 
     <properties>
-        <liquibase-properties.file-path>
-            ${project.basedir}/src/test/resources/liquibase.properties
-        </liquibase-properties.file-path>
+        <!-- quarkus settings -->
+        <quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
+        <!-- other settings -->
+        <liquibase-properties.file-path>${project.basedir}/src/test/resources/liquibase.properties</liquibase-properties.file-path>
         <!-- versions -->
-        <jooq.version>3.16.6</jooq.version>
         <h2.version>2.1.212</h2.version>
         <liquibase.version>4.11.0</liquibase.version>
         <snakeyaml.version>1.30</snakeyaml.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy-reactive</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-container-image-jib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-kubernetes</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-minikube</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
@@ -67,6 +83,20 @@
         </testResources>
         <plugins>
             <plugin>
+                <groupId>io.quarkus.platform</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>${liquibase.version}</version>
@@ -75,7 +105,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <systemPropertiesFile>${liquibase-properties.file-path}</systemPropertiesFile>
