@@ -48,6 +48,6 @@ public class UnusualExpense implements Comparable<UnusualExpense> {
 
     @Override
     public String toString() {
-        return "CategorizedExpense{category=%s, amount=%s}".formatted(category, amount);
+        return "UnusualExpense{category=%s, amount=%s}".formatted(category, amount);
     }
 }

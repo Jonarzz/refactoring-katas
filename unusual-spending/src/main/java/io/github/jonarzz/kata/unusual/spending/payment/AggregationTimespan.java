@@ -34,6 +34,11 @@ public class AggregationTimespan {
         return of(month, UTC);
     }
 
+    @Override
+    public String toString() {
+        return "AggregationTimespan{start=%s, end=%s}".formatted(start, end);
+    }
+
     OffsetDateTime start() {
         return start;
     }

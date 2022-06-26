@@ -1,6 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
+import static io.github.jonarzz.kata.unusual.spending.expense.MultiplicationThreshold.percentage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.DisplayName;

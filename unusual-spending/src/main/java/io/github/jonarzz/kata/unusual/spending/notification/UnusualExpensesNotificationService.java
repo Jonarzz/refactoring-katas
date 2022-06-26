@@ -1,7 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
+import static io.github.jonarzz.kata.unusual.spending.expense.MultiplicationThreshold.percentage;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparisonCriteria.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan.of;
 import static java.lang.System.lineSeparator;
@@ -9,6 +9,7 @@ import static java.util.Comparator.reverseOrder;
 
 import io.github.jonarzz.kata.unusual.spending.expense.ExpenseService;
 import io.github.jonarzz.kata.unusual.spending.expense.UnusualExpense;
+import org.jboss.logging.Logger;
 
 import java.math.BigInteger;
 import java.time.YearMonth;
@@ -16,6 +17,8 @@ import java.util.Collection;
 import java.util.Optional;
 
 public class UnusualExpensesNotificationService {
+
+    private static final Logger LOG = Logger.getLogger(UnusualExpensesNotificationService.class);
 
     private ExpenseService expenseService;
     private CommonI18nService commonI18nService;
@@ -34,23 +37,26 @@ public class UnusualExpensesNotificationService {
     // TODO user package + persistence + web api (GraphQL) + emitting events and receiving in other MS
     // TODO divide into modules -> microservices
     // TODO triggered as a scheduled task (external service)
-    // TODO Docker/Kubernetes
-    // TODO logging + elastic
+    // TODO ELK
     // TODO Prometheus
     // TODO front-end
     // TODO Cypress tests
 
     public Optional<String> createNotificationBody(BigInteger userId) {
+        LOG.debugf("Creating notification body for user with ID %s", userId);
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);
-        var unusualExpenses = expenseService.calculate(forUserId(userId)
-                                                               .aggregateExpenses(of(currentMonth))
-                                                               .groupedBy(category())
-                                                               .comparedToAggregatedExpenses(of(previousMonth))
-                                                               .increasedByAtLeast(percentage(150)));
+        var unusualExpenses = expenseService.calculateUnusualExpenses(forUserId(userId)
+                                                                              .aggregateExpenses(of(currentMonth))
+                                                                              .groupedBy(category())
+                                                                              .comparedToAggregatedExpenses(of(previousMonth))
+                                                                              .increasedByAtLeast(percentage(150)));
         if (unusualExpenses.isEmpty()) {
+            LOG.debugf("Unusual expenses not found for user with ID %s", userId);
             return Optional.empty();
         }
+        LOG.debugf("Found %s unusual expenses for user with ID %s - building notification message",
+                   unusualExpenses.size(), userId);
         return Optional.of(buildNotification(unusualExpenses));
     }
 

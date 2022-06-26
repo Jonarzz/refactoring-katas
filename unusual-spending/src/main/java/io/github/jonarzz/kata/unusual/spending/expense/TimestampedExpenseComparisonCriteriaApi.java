@@ -4,9 +4,9 @@ import io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy;
 import io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
 
-public class TimestampedExpenseComparisonApi {
+public class TimestampedExpenseComparisonCriteriaApi {
 
-    private TimestampedExpenseComparisonApi() {
+    private TimestampedExpenseComparisonCriteriaApi() {
 
     }
 
@@ -28,6 +28,6 @@ public class TimestampedExpenseComparisonApi {
 
     public interface WithBaseTimespan {
 
-        TimestampedExpenseComparison increasedByAtLeast(ThresholdValue thresholdValue);
+        TimestampedExpenseComparisonCriteria increasedByAtLeast(MultiplicationThreshold multiplicationThreshold);
     }
 }

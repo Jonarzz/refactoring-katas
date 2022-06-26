@@ -3,6 +3,8 @@ package io.github.jonarzz.kata.unusual.spending.notification;
 import static java.util.Locale.ENGLISH;
 import static java.util.Locale.forLanguageTag;
 
+import org.jboss.logging.Logger;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,6 +16,8 @@ import java.util.Optional;
 import java.util.Properties;
 
 class MessageRegistry {
+
+    private static final Logger LOG = Logger.getLogger(MessageRegistry.class);
 
     private static final Locale FALLBACK_LOCALE = ENGLISH;
 
@@ -48,6 +52,7 @@ class MessageRegistry {
             }
         }
         messagesByLocale = loadedMessages;
+        LOG.tracef("Loaded i18n messages: %s", messagesByLocale);
         return this;
     }
 

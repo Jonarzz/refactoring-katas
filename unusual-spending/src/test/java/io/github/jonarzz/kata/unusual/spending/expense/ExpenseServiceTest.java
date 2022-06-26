@@ -1,7 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
-import static io.github.jonarzz.kata.unusual.spending.expense.ThresholdValue.percentage;
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparison.forUserId;
+import static io.github.jonarzz.kata.unusual.spending.expense.MultiplicationThreshold.percentage;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparisonCriteria.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
 import static java.math.BigInteger.TWO;
@@ -40,7 +40,7 @@ class ExpenseServiceTest {
         when(paymentService.aggregateTotalUserExpensesBy(eq(aggregationPolicy), eq(PAYER_ID), any()))
                 .thenReturn(Map.of());
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)
@@ -57,7 +57,7 @@ class ExpenseServiceTest {
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromCurrentTimespan))
                 .thenReturn(Map.of(Category.named("TRAVEL"), usd(250, 0)));
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)
@@ -74,7 +74,7 @@ class ExpenseServiceTest {
         when(paymentService.aggregateTotalUserExpensesBy(aggregationPolicy, PAYER_ID, fromCurrentTimespan))
                 .thenReturn(Map.of());
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)
@@ -93,7 +93,7 @@ class ExpenseServiceTest {
                 .thenReturn(Map.of(category, usd(300, 0)));
         SpendingThreshold threshold = (base, compared) -> false;
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)
@@ -112,7 +112,7 @@ class ExpenseServiceTest {
                 .thenReturn(Map.of(category, usd(500, 75)));
         SpendingThreshold threshold = (base, compared) -> true;
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)
@@ -136,7 +136,7 @@ class ExpenseServiceTest {
                                    matchingCategory, usd(505, 99)));
         SpendingThreshold threshold = (base, compared) -> true;
 
-        var payments = expenseService.calculate(forUserId(PAYER_ID)
+        var payments = expenseService.calculateUnusualExpenses(forUserId(PAYER_ID)
                                                         .aggregateExpenses(fromCurrentTimespan)
                                                         .groupedBy(category())
                                                         .comparedToAggregatedExpenses(fromPreviousTimespan)

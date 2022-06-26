@@ -8,17 +8,21 @@ class ExpensesIncreasedByAtLeast implements SpendingThreshold {
 
     private static final int DIVISION_RESULT_SCALE = 5;
 
-    private BigDecimal increaseThreshold;
+    private BigDecimal increaseMultiplicationThreshold;
 
-    ExpensesIncreasedByAtLeast(ThresholdValue increaseThreshold) {
-        this.increaseThreshold = BigDecimal.valueOf(increaseThreshold.value());
+    ExpensesIncreasedByAtLeast(MultiplicationThreshold increaseMultiplicationThreshold) {
+        this.increaseMultiplicationThreshold = BigDecimal.valueOf(increaseMultiplicationThreshold.value());
     }
 
     @Override
     public boolean thresholdReached(BigDecimal base, BigDecimal verified) {
         return verified.divide(base, DIVISION_RESULT_SCALE, HALF_EVEN)
-                       .compareTo(increaseThreshold)
+                       .compareTo(increaseMultiplicationThreshold)
                >= 0;
     }
 
+    @Override
+    public String toString() {
+        return "ExpensesIncreasedByAtLeast{multiplicationThreshold=%s}".formatted(increaseMultiplicationThreshold);
+    }
 }
