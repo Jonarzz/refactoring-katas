@@ -5,9 +5,11 @@ import static java.util.stream.Collectors.toMap;
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import org.jboss.logging.Logger;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.math.BigInteger;
 import java.util.Map;
 
+@ApplicationScoped
 public class PaymentService {
 
     private static final Logger LOG = Logger.getLogger(PaymentService.class);

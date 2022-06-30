@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: artemis-journal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jms-broker
+  labels:
+    app: jms-broker
+spec:
+  ports:
+    - name: jms
+      port: 61616
+      targetPort: 61616
+    - name: ui
+      port: 8161
+      targetPort: 8161
+  selector:
+    app: jms-broker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jms-broker
+  labels:
+    app: jms-broker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jms-broker
+  template:
+    metadata:
+      labels:
+        app: jms-broker
+    spec:
+      containers:
+        - image: docker.io/ssorj/activemq-artemis
+          imagePullPolicy: IfNotPresent
+          name: jms-broker
+          env:
+            - name: CREATE_ARGUMENTS
+              # TODO login and password as k8s Secret
+              value: --nio --require-login --user artemis --password artemis --http-host localhost
+          ports:
+            - containerPort: 61616
+              name: jms
+            - containerPort: 8161
+              name: ui
+          volumeMounts:
+            - name: journal
+              mountPath: /var/lib/artemis-instance/data/journal
+      volumes:
+        - name: journal
+          persistentVolumeClaim:
+            claimName: artemis-journal
+      securityContext:
+        runAsUser: 0 # persistent volume mounted as root

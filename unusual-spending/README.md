@@ -67,9 +67,14 @@ the command after `--` could be anything, e.g. it could be a `curl` command veri
 is accessible from given deployment - in case of a single command the session quits after executing the command
 - `kubectl port-forward service/unusual-spending 8080:80` - run a tunnel forwarding the localhost port `8080` to the `80` port 
 in given service 
+- `kubectl explain <thing>` (e.g. `kubectl explain deployments.spec.replicas`) - displays documentation of the given "thing"
 - `minikube image ls --format table` - list Minikube images - by verifying image ID it's possible to check if the image was successfully reloaded 
 - `minikube image rm io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT` - remove the image from Minikube images
 - `minikube dashboard` - run a web-accessible dashboard showing the state of the cluster
 
 See [kubectl](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands) 
 and [minikube](https://minikube.sigs.k8s.io/docs/commands/) commands pages for more.
+
+## Recommended reading
+- https://learnk8s.io/spring-boot-kubernetes-guide
+- https://learnk8s.io/blog/kubectl-productivity

@@ -6,11 +6,13 @@ import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseFetchingAdapter;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseModifyingAdapter;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 
+@ApplicationScoped
 class PaymentRepository {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -23,6 +25,7 @@ class PaymentRepository {
         queryingAdapter = new DatabaseFetchingAdapter();
     }
 
+    // TODO @ConfigProperty
     PaymentRepository(String url, String user, String password) {
         modifyingAdapter = new DatabaseModifyingAdapter(url, user, password);
         queryingAdapter = new DatabaseFetchingAdapter(url, user, password);

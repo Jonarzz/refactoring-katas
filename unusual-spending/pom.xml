@@ -16,6 +16,7 @@
     <properties>
         <!-- quarkus settings -->
         <quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
+        <quarkus.kubernetes.image-pull-policy>IfNotPresent</quarkus.kubernetes.image-pull-policy>
         <!-- other settings -->
         <liquibase-properties.file-path>${project.basedir}/src/test/resources/liquibase.properties</liquibase-properties.file-path>
         <!-- versions -->
@@ -31,15 +32,15 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-artemis-jms</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-container-image-jib</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-kubernetes</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-minikube</artifactId>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
