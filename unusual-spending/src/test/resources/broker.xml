@@ -1,0 +1,25 @@
+<configuration xmlns="urn:activemq" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq https://raw.githubusercontent.com/apache/activemq-artemis/main/artemis-server/src/main/resources/schema/artemis-configuration.xsd">
+    <core xmlns="urn:activemq:core">
+
+        <acceptors>
+            <acceptor name="netty">vm://localhost:61616</acceptor>
+        </acceptors>
+
+        <security-settings>
+            <security-setting match="#">
+                <permission type="send" roles="prod"/>
+                <permission type="consume" roles="cons"/>
+            </security-setting>
+        </security-settings>
+
+        <addresses>
+            <address name="paymentQueue">
+                <anycast>
+                    <queue name="paymentQueue"/>
+                </anycast>
+            </address>
+        </addresses>
+    </core>
+
+</configuration>

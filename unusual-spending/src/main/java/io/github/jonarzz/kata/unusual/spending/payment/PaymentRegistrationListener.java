@@ -1,5 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.jms.JMSContext.AUTO_ACKNOWLEDGE;
 
 import io.quarkus.runtime.ShutdownEvent;
@@ -12,11 +13,14 @@ import javax.enterprise.event.Observes;
 import javax.jms.ConnectionFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @ApplicationScoped
 class PaymentRegistrationListener implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(PaymentRegistrationListener.class);
+
+    private static final int MAX_RETRIES = 3;
 
     // normally would be injected - initialized inline for simplicity
     private final ExecutorService scheduler = Executors.newSingleThreadExecutor();
@@ -25,6 +29,9 @@ class PaymentRegistrationListener implements Runnable {
     private final String queueName;
 
     private final PaymentService paymentService;
+
+    // should be configurable - value inlined for simplicity
+    private final AtomicInteger connectionRetryCount = new AtomicInteger(MAX_RETRIES);
 
     PaymentRegistrationListener(
             ConnectionFactory connectionFactory,
@@ -39,17 +46,28 @@ class PaymentRegistrationListener implements Runnable {
     public void run() {
         try (var context = connectionFactory.createContext(AUTO_ACKNOWLEDGE)) {
             var consumer = context.createConsumer(context.createQueue(queueName));
+            connectionRetryCount.set(MAX_RETRIES);
             while (true) {
                 var message = consumer.receive();
                 if (message == null) {
+                    LOG.debugf("Consumer for queue %s is closed, returning", queueName);
                     return;
                 }
                 LOG.info(message.getBody(String.class));
-                // TODO paymentService.save
+                paymentService.save(null); // TODO unmarshall the body and pass here
             }
         } catch (Exception exception) {
-            LOG.error("Consumption from " + queueName + " failed", exception);
-            throw new IllegalStateException(exception);
+            LOG.errorf("Consumption from %s failed, reason: %s", queueName, exception);
+            if (connectionRetryCount.decrementAndGet() == 0) {
+                throw new IllegalStateException("JMS consumption failed " + MAX_RETRIES + " times, aborting");
+            }
+            try {
+                SECONDS.sleep(1);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            LOG.debugf("Retrying connection to %s...", queueName);
+            run();
         }
     }
 

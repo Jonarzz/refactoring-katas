@@ -32,6 +32,7 @@
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <cucumber.version>7.2.3</cucumber.version>
         <quarkus.version>2.9.2.Final</quarkus.version>
+        <quarkus.artemis.version>1.2.0</quarkus.artemis.version>
     </properties>
 
     <build>
@@ -84,6 +85,12 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <!-- TODO coverage of @QuarkusTest classes -->
+                                <exclude>**/PaymentRegistrationListener.*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -101,6 +108,13 @@
                 <groupId>io.quarkus.platform</groupId>
                 <artifactId>quarkus-bom</artifactId>
                 <version>${quarkus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkiverse.artemis</groupId>
+                <artifactId>quarkus-artemis-bom</artifactId>
+                <version>${quarkus.artemis.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

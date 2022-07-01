@@ -43,7 +43,7 @@ spec:
         app: jms-broker
     spec:
       containers:
-        - image: docker.io/ssorj/activemq-artemis
+        - image: docker.io/ssorj/activemq-artemisv # TODO try change to Artemis Cloud image
           imagePullPolicy: IfNotPresent
           name: jms-broker
           env:
