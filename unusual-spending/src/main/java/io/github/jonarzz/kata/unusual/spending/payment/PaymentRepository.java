@@ -11,6 +11,7 @@ import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Optional;
 
 @ApplicationScoped
 class PaymentRepository {
@@ -61,9 +62,9 @@ class PaymentRepository {
                                         .formatted(payment.id(), payerId, cost.amount(), currency.alphaCode(), category,
                                                    payment.timestamp()
                                                           .format(ISO_OFFSET_DATE_TIME),
-                                                   details.description()
-                                                          .map(description -> "'" + description + "'")
-                                                          .orElse(null)));
+                                                   Optional.ofNullable(details.description())
+                                                           .map(description -> "'" + description + "'")
+                                                           .orElse(null)));
     }
 
     private void createCurrencyIfDoesNotExist(Currency currency) {

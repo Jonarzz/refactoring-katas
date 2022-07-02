@@ -39,7 +39,7 @@ public class Cost implements Comparable<Cost> {
     }
 
     public Cost add(Cost other) {
-        if (currency != other.currency) {
+        if (!currency.equals(other.currency)) {
             throw new UnsupportedOperationException("Adding money in different currencies is unsupported at this moment");
         }
         return new Cost(currency, amount.add(other.amount));
@@ -55,7 +55,7 @@ public class Cost implements Comparable<Cost> {
 
     @Override
     public int compareTo(Cost other) {
-        if (currency != other.currency) {
+        if (!currency.equals(other.currency)) {
             return 0;
         }
         return amount.compareTo(other.amount);
@@ -74,7 +74,7 @@ public class Cost implements Comparable<Cost> {
         if (!(other instanceof Cost cost)) {
             return false;
         }
-        return currency == cost.currency
+        return currency.equals(cost.currency)
                && amount.equals(cost.amount);
     }
 
