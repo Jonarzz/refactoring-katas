@@ -52,6 +52,7 @@ class PaymentRegistrationListener implements Runnable {
              var consumer = context.createConsumer(context.createQueue(queueName))) {
             connectionRetryCount.set(MAX_RETRIES);
             while (true) {
+                LOG.debugf("Connected to queue %s, polling...", queueName);
                 var message = consumer.receive();
                 if (message == null) {
                     LOG.debugf("Consumer for queue %s is closed, returning", queueName);
@@ -63,7 +64,7 @@ class PaymentRegistrationListener implements Runnable {
                 paymentService.save(payment);
             }
         } catch (Exception exception) {
-            LOG.errorf("Consumption from %sa failed, reason: %s", queueName, exception);
+            LOG.errorf(exception, "Consumption from %s failed", queueName);
             if (connectionRetryCount.decrementAndGet() == 0) {
                 throw new IllegalStateException("JMS consumption failed " + MAX_RETRIES + " times, aborting");
             }

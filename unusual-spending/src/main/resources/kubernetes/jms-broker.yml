@@ -43,13 +43,17 @@ spec:
         app: jms-broker
     spec:
       containers:
-        - image: docker.io/ssorj/activemq-artemisv # TODO try change to Artemis Cloud image
+        - image: quay.io/artemiscloud/activemq-artemis-broker:1.0.6
           imagePullPolicy: IfNotPresent
           name: jms-broker
           env:
-            - name: CREATE_ARGUMENTS
-              # TODO login and password as k8s Secret
-              value: --nio --require-login --user artemis --password artemis --http-host localhost
+            # TODO login and password as k8s Secret
+            - name: AMQ_USER
+              value: artemis
+            - name: AMQ_PASSWORD
+              value: artemis
+            - name: AMQ_EXTRA_ARGS
+              value: --nio --require-login --queues paymentQueue
           ports:
             - containerPort: 61616
               name: jms
@@ -57,10 +61,8 @@ spec:
               name: ui
           volumeMounts:
             - name: journal
-              mountPath: /var/lib/artemis-instance/data/journal
+              mountPath: ~/broker/data/journal
       volumes:
         - name: journal
           persistentVolumeClaim:
             claimName: artemis-journal
-      securityContext:
-        runAsUser: 0 # persistent volume mounted as root

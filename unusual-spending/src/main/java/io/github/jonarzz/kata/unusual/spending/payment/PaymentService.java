@@ -34,7 +34,7 @@ public class PaymentService {
     }
 
     public void save(PaymentEvent paymentEvent) {
-        // TODO payment saving from JMS queue
+        // TODO validation
         LOG.debugf("Saving %s", paymentEvent);
         paymentRepository.save(paymentEvent);
     }
