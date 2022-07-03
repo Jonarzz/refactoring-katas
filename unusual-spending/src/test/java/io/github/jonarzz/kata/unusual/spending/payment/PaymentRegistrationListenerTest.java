@@ -5,7 +5,10 @@ import static javax.jms.JMSContext.AUTO_ACKNOWLEDGE;
 import static org.apache.activemq.artemis.spi.core.security.ActiveMQBasicSecurityManager.BOOTSTRAP_ROLE_FILE;
 import static org.apache.activemq.artemis.spi.core.security.ActiveMQBasicSecurityManager.BOOTSTRAP_USER_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.INTEGER;
 
+import io.github.jonarzz.kata.unusual.spending.money.Cost;
+import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.test.Mock;
@@ -20,6 +23,11 @@ import org.junit.jupiter.api.RepeatedTest;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
@@ -39,16 +47,47 @@ class PaymentRegistrationListenerTest {
     static final int SINGLE_RUN_MESSAGE_COUNT = 10;
 
     static CountDownLatch messagesLatch = new CountDownLatch(SINGLE_RUN_MESSAGE_COUNT);
+    static Collection<PaymentEvent> polledEvents = new ArrayList<>();
+
+    static class MessageData {
+
+        static final String ID = "7b8d8c9f-a8fb-486d-9c44-96008b30118e";
+        static final String TIMESTAMP_STRING = "2022-07-02T12:13:49+02";
+        static final OffsetDateTime TIMESTAMP = OffsetDateTime.parse(TIMESTAMP_STRING);
+        static final String CATEGORY = "travel";
+        static final BigDecimal AMOUNT = BigDecimal.valueOf(375.89);
+        static final String CURRENCY = "USD";
+    }
 
     @BeforeEach
     void setUp() {
         messagesLatch = new CountDownLatch(SINGLE_RUN_MESSAGE_COUNT);
+        polledEvents.clear();
+
         try (var connectionFactory = new ActiveMQConnectionFactory(ARTEMIS_URL, PRODUCER_USERNAME, PRODUCER_PASSWORD);
              var context = connectionFactory.createContext(AUTO_ACKNOWLEDGE)) {
             var paymentQueue = context.createQueue("paymentQueue");
             var producer = context.createProducer();
-            for (int i = 0; i < SINGLE_RUN_MESSAGE_COUNT; i++) {
-                producer.send(paymentQueue, "test message " + i);
+            for (int payerId = 1; payerId <= SINGLE_RUN_MESSAGE_COUNT; payerId++) {
+                producer.send(paymentQueue, """
+                        {
+                          "id": "%s",
+                          "timestamp": "%s",
+                          "payerId": %d,
+                          "details": {
+                            "category": "%s",
+                            "cost": {
+                               "amount": %s,
+                               "currency": "%s"
+                            }
+                          }
+                        }
+                        """.formatted(MessageData.ID,
+                                      MessageData.TIMESTAMP_STRING,
+                                      payerId,
+                                      MessageData.CATEGORY,
+                                      MessageData.AMOUNT,
+                                      MessageData.CURRENCY));
             }
         }
     }
@@ -59,6 +98,23 @@ class PaymentRegistrationListenerTest {
                 .as("Latch counting %d messages stopped at %d",
                     SINGLE_RUN_MESSAGE_COUNT, messagesLatch.getCount())
                 .isTrue();
+
+        assertThat(polledEvents)
+                .as("Polled events")
+                .hasSize(SINGLE_RUN_MESSAGE_COUNT)
+                .allSatisfy(paymentEvent -> assertThat(paymentEvent)
+                        .returns(MessageData.ID, event -> event.id().toString())
+                        .returns(MessageData.TIMESTAMP, PaymentEvent::timestamp)
+                        .satisfies(event -> assertThat(event.details())
+                                .returns(MessageData.CATEGORY, details -> details.category()
+                                                                                 .toString())
+                                .extracting(PaymentDetails::cost)
+                                .returns(MessageData.AMOUNT, Cost::amount)
+                                .extracting(Cost::currency)
+                                .returns(MessageData.CURRENCY, Currency::alphaCode))
+                        .extracting(PaymentEvent::payerId)
+                        .extracting(BigInteger::intValue, INTEGER)
+                        .isBetween(1, SINGLE_RUN_MESSAGE_COUNT));
     }
 
     @ApplicationScoped
@@ -98,8 +154,9 @@ class PaymentRegistrationListenerTest {
         }
 
         @Override
-        public void save(Payment payment) {
+        public void save(PaymentEvent paymentEvent) {
             messagesLatch.countDown();
+            polledEvents.add(paymentEvent);
         }
     }
 

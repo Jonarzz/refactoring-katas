@@ -4,6 +4,6 @@ import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-record Payment(UUID id, BigInteger payerId, PaymentDetails details, OffsetDateTime timestamp) {
+record PaymentEvent(UUID id, BigInteger payerId, PaymentDetails details, OffsetDateTime timestamp) {
 
 }

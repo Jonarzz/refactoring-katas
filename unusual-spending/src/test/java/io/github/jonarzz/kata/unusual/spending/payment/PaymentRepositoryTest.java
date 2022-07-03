@@ -107,7 +107,7 @@ class PaymentRepositoryTest {
 
         @Test
         void tryToSave_userWithGivenIdDoesNotExist() {
-            var payment = new Payment(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
+            var payment = new PaymentEvent(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
 
             assertThatThrownBy(() -> repository.save(payment))
                     .hasMessage("Payer with ID 10 does not exist");
@@ -147,7 +147,7 @@ class PaymentRepositoryTest {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency));
             var timeBefore = OffsetDateTime.now();
-            var payment = new Payment(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
+            var payment = new PaymentEvent(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
 
             repository.save(payment);
 

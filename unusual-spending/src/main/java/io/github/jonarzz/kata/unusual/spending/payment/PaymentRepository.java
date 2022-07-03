@@ -45,12 +45,12 @@ class PaymentRepository {
         return queryingAdapter.fetch(formattedSql, new PaymentRepositoryResultMapper());
     }
 
-    public void save(Payment payment) {
-        var payerId = payment.payerId();
+    public void save(PaymentEvent paymentEvent) {
+        var payerId = paymentEvent.payerId();
         if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = " + payerId)) {
             throw new IllegalStateException("Payer with ID " + payerId + " does not exist");
         }
-        var details = payment.details();
+        var details = paymentEvent.details();
         var cost = details.cost();
         var currency = cost.currency();
         createCurrencyIfDoesNotExist(currency);
@@ -59,9 +59,9 @@ class PaymentRepository {
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_id, amount, currency, category, time, description) "
                                 + "VALUES ('%s', %s, %s, '%s', '%s', '%s', %s)"
-                                        .formatted(payment.id(), payerId, cost.amount(), currency.alphaCode(), category,
-                                                   payment.timestamp()
-                                                          .format(ISO_OFFSET_DATE_TIME),
+                                        .formatted(paymentEvent.id(), payerId, cost.amount(), currency.alphaCode(), category,
+                                                   paymentEvent.timestamp()
+                                                               .format(ISO_OFFSET_DATE_TIME),
                                                    Optional.ofNullable(details.description())
                                                            .map(description -> "'" + description + "'")
                                                            .orElse(null)));

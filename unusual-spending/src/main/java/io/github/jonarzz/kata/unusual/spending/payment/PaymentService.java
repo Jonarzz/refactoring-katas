@@ -33,10 +33,10 @@ public class PaymentService {
                                                Cost::add));
     }
 
-    public void save(Payment payment) {
+    public void save(PaymentEvent paymentEvent) {
         // TODO payment saving from JMS queue
-        LOG.debugf("Saving %s", payment);
-        paymentRepository.save(payment);
+        LOG.debugf("Saving %s", paymentEvent);
+        paymentRepository.save(paymentEvent);
     }
 
 }
