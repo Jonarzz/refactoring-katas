@@ -1,0 +1,63 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: h2-db-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  labels:
+    app: database
+spec:
+  ports:
+    - name: db-server
+      port: 1521
+      targetPort: 1521
+    - name: ui
+      port: 8181
+      targetPort: 81
+  selector:
+    app: database
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: database
+  labels:
+    app: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+    spec:
+      containers:
+        - image: oscarfonts/h2:2.1.210
+          imagePullPolicy: IfNotPresent
+          name: database
+          env:
+            - name: H2_OPTIONS
+              value: '-ifNotExists'
+          ports:
+            - containerPort: 5121
+              name: db-server
+            - containerPort: 81
+              name: ui
+          volumeMounts:
+            - name: db-data
+              mountPath: /opt/h2-data
+      volumes:
+        - name: db-data
+          persistentVolumeClaim:
+            claimName: h2-db-data

@@ -7,9 +7,6 @@ import java.util.List;
 
 public class DatabaseFetchingAdapter extends DatabaseAdapter {
 
-    public DatabaseFetchingAdapter() {
-    }
-
     public DatabaseFetchingAdapter(String url, String username, String password) {
         super(url, username, password);
     }

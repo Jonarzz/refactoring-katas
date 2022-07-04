@@ -21,12 +21,15 @@ import java.math.BigInteger;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.util.Optional;
 import java.util.UUID;
 
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
 
-    PaymentRepository repository = new PaymentRepository();
+    PaymentRepository repository = new PaymentRepository(LiquibaseExtension.URL,
+                                                         LiquibaseExtension.USERNAME,
+                                                         Optional.of(LiquibaseExtension.PASSWORD));
 
     @Nested
     @ExtendWith(LiquibaseExtension.class)
@@ -107,7 +110,7 @@ class PaymentRepositoryTest {
 
         @Test
         void tryToSave_userWithGivenIdDoesNotExist() {
-            var payment = new PaymentEvent(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
 
             assertThatThrownBy(() -> repository.save(payment))
                     .hasMessage("Payer with ID 10 does not exist");
@@ -147,7 +150,7 @@ class PaymentRepositoryTest {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency));
             var timeBefore = OffsetDateTime.now();
-            var payment = new PaymentEvent(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
 
             repository.save(payment);
 
@@ -167,7 +170,7 @@ class PaymentRepositoryTest {
         PaymentRepository invalidRepository = new PaymentRepository(
                 "invalid url",
                 "invalid user",
-                "invalid password"
+                Optional.of("invalid password")
         );
 
         @Test

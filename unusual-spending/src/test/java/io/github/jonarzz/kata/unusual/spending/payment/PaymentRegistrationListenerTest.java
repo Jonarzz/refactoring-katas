@@ -47,7 +47,7 @@ class PaymentRegistrationListenerTest {
     static final int SINGLE_RUN_MESSAGE_COUNT = 10;
 
     static CountDownLatch messagesLatch = new CountDownLatch(SINGLE_RUN_MESSAGE_COUNT);
-    static Collection<PaymentEvent> polledEvents = new ArrayList<>();
+    static Collection<PaymentRegisteredEvent> polledEvents = new ArrayList<>();
 
     static class MessageData {
 
@@ -69,6 +69,7 @@ class PaymentRegistrationListenerTest {
             var paymentQueue = context.createQueue("paymentQueue");
             var producer = context.createProducer();
             for (int payerId = 1; payerId <= SINGLE_RUN_MESSAGE_COUNT; payerId++) {
+                // TODO currency as object is not parsed properly
                 producer.send(paymentQueue, """
                         {
                           "id": "%s",
@@ -104,7 +105,7 @@ class PaymentRegistrationListenerTest {
                 .hasSize(SINGLE_RUN_MESSAGE_COUNT)
                 .allSatisfy(paymentEvent -> assertThat(paymentEvent)
                         .returns(MessageData.ID, event -> event.id().toString())
-                        .returns(MessageData.TIMESTAMP, PaymentEvent::timestamp)
+                        .returns(MessageData.TIMESTAMP, PaymentRegisteredEvent::timestamp)
                         .satisfies(event -> assertThat(event.details())
                                 .returns(MessageData.CATEGORY, details -> details.category()
                                                                                  .toString())
@@ -112,7 +113,7 @@ class PaymentRegistrationListenerTest {
                                 .returns(MessageData.AMOUNT, Cost::amount)
                                 .extracting(Cost::currency)
                                 .returns(MessageData.CURRENCY, Currency::alphaCode))
-                        .extracting(PaymentEvent::payerId)
+                        .extracting(PaymentRegisteredEvent::payerId)
                         .extracting(BigInteger::intValue, INTEGER)
                         .isBetween(1, SINGLE_RUN_MESSAGE_COUNT));
     }
@@ -154,7 +155,7 @@ class PaymentRegistrationListenerTest {
         }
 
         @Override
-        public void save(PaymentEvent paymentEvent) {
+        public void save(PaymentRegisteredEvent paymentEvent) {
             messagesLatch.countDown();
             polledEvents.add(paymentEvent);
         }

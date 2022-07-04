@@ -33,7 +33,7 @@ public class PaymentService {
                                                Cost::add));
     }
 
-    public void save(PaymentEvent paymentEvent) {
+    public void save(PaymentRegisteredEvent paymentEvent) {
         // TODO validation
         LOG.debugf("Saving %s", paymentEvent);
         paymentRepository.save(paymentEvent);

@@ -12,9 +12,9 @@ import java.sql.DriverManager;
 
 public class LiquibaseExtension implements BeforeAllCallback {
 
-    public static final String URL = System.getProperty("url");
-    public static final String USERNAME = System.getProperty("username");
-    public static final String PASSWORD = System.getProperty("password");
+    public static final String URL = System.getProperty("liquibase.url");
+    public static final String USERNAME = System.getProperty("liquibase.username");
+    public static final String PASSWORD = System.getProperty("liquibase.password");
 
     private static final String CHANGE_LOG_FILE = "changelog.yaml";
 

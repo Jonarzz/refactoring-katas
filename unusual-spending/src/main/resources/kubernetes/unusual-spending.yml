@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: unusual-spending
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  name: unusual-spending
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: unusual-spending
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/name: unusual-spending
+    app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  name: unusual-spending
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unusual-spending
+      app.kubernetes.io/version: 1.0.0-SNAPSHOT
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: unusual-spending
+        app.kubernetes.io/version: 1.0.0-SNAPSHOT
+    spec:
+      containers:
+        - name: unusual-spending
+          image: io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: QUARKUS_LOG_LEVEL
+              value: DEBUG
+            # JMS
+            - name: QUARKUS_ARTEMIS_URL
+              value: tcp://jms-broker:61616
+              # TODO k8s secret
+            - name: QUARKUS_ARTEMIS_USERNAME
+              value: artemis
+            - name: QUARKUS_ARTEMIS_PASSWORD
+              value: artemis
+            # database
+            - name: DATABASE_PAYMENT_URL
+              value: jdbc:h2:tcp://database:1521/payment
+            - name: DATABASE_PAYMENT_USERNAME
+              value: sa
+              # H2 password for user 'sa' is empty by default
+      initContainers:
+        - name: liquibase
+          image: liquibase/liquibase:4.12
+          imagePullPolicy: IfNotPresent
+          command:
+            - liquibase
+            - '--defaultsFile=custom-config/payment-liquibase.properties'
+            - '--classpath=/liquibase/custom-config'
+            - '--log-level=INFO'
+            - update
+          volumeMounts:
+            - name: payment-liquibase-changelog
+              mountPath: /liquibase/custom-config
+      volumes:
+        - name: payment-liquibase-changelog
+          configMap:
+            name: payment-liquibase-config

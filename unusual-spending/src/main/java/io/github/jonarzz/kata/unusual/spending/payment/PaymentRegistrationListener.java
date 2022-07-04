@@ -60,8 +60,8 @@ class PaymentRegistrationListener implements Runnable {
                 }
                 var messageBody = message.getBody(String.class);
                 LOG.debugf("Polled message from %s queue: %s", queueName, messageBody);
-                var payment = objectMapper.readValue(messageBody, PaymentEvent.class);
-                paymentService.save(payment);
+                var paymentEvent = objectMapper.readValue(messageBody, PaymentRegisteredEvent.class);
+                paymentService.save(paymentEvent);
             }
         } catch (Exception exception) {
             LOG.errorf(exception, "Consumption from %s failed", queueName);

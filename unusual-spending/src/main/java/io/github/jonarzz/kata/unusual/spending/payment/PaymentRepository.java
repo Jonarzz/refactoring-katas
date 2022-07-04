@@ -5,6 +5,8 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseFetchingAdapter;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseModifyingAdapter;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.math.BigInteger;
@@ -16,20 +18,21 @@ import java.util.Optional;
 @ApplicationScoped
 class PaymentRepository {
 
+    private static final Logger LOG = Logger.getLogger(PaymentRepository.class);
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private DatabaseFetchingAdapter queryingAdapter;
     private DatabaseModifyingAdapter modifyingAdapter;
 
-    PaymentRepository() {
-        modifyingAdapter = new DatabaseModifyingAdapter();
-        queryingAdapter = new DatabaseFetchingAdapter();
-    }
-
-    // TODO @ConfigProperty
-    PaymentRepository(String url, String user, String password) {
-        modifyingAdapter = new DatabaseModifyingAdapter(url, user, password);
-        queryingAdapter = new DatabaseFetchingAdapter(url, user, password);
+    PaymentRepository(@ConfigProperty(name = "database.payment.url") String url,
+                      @ConfigProperty(name = "database.payment.username") String user,
+                      // ugly H2 workaround to save time - default 'sa' user password is empty; Quarkus ignores an empty default value
+                      @ConfigProperty(name = "database.payment.password") Optional<String> password) {
+        var passwordValue = password.orElse("");
+        LOG.infof("Creating database adapters for URL '%s' and user '%s", url, user);
+        modifyingAdapter = new DatabaseModifyingAdapter(url, user, passwordValue);
+        queryingAdapter = new DatabaseFetchingAdapter(url, user, passwordValue);
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(BigInteger payerId, OffsetDateTime from, OffsetDateTime to) {
@@ -45,7 +48,7 @@ class PaymentRepository {
         return queryingAdapter.fetch(formattedSql, new PaymentRepositoryResultMapper());
     }
 
-    public void save(PaymentEvent paymentEvent) {
+    public void save(PaymentRegisteredEvent paymentEvent) {
         var payerId = paymentEvent.payerId();
         if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = " + payerId)) {
             throw new IllegalStateException("Payer with ID " + payerId + " does not exist");

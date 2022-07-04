@@ -1,4 +1,5 @@
 databaseChangeLog:
+  - # TODO add indexes
   - changeSet:
       id: create-tables
       author: jonasz

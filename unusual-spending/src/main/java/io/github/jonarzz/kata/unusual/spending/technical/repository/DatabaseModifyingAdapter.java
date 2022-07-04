@@ -4,9 +4,6 @@ import java.sql.SQLException;
 
 public class DatabaseModifyingAdapter extends DatabaseAdapter {
 
-    public DatabaseModifyingAdapter() {
-    }
-
     public DatabaseModifyingAdapter(String url, String username, String password) {
         super(url, username, password);
     }

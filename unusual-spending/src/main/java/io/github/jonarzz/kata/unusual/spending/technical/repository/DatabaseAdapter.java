@@ -16,12 +16,6 @@ abstract class DatabaseAdapter {
         this.password = password;
     }
 
-    DatabaseAdapter() {
-        this(System.getProperty("url"),
-             System.getProperty("username"),
-             System.getProperty("password"));
-    }
-
     Connection getConnection() throws SQLException {
         return DriverManager.getConnection(url, username, password);
     }
