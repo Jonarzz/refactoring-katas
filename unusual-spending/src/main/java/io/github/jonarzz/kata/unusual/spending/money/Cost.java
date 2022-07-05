@@ -1,17 +1,26 @@
 package io.github.jonarzz.kata.unusual.spending.money;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Currency.USD;
+import static java.math.BigDecimal.ZERO;
 import static java.math.BigDecimal.valueOf;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.util.Objects;
 
 public class Cost implements Comparable<Cost> {
 
+    @Valid
     private Currency currency;
     private BigDecimal amount;
 
     private Cost(Currency currency, BigDecimal amount) {
+        if (currency == null) {
+            throw new IllegalArgumentException("Currency cannot be null");
+        }
+        if (amount.compareTo(ZERO) < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
         this.currency = currency;
         this.amount = amount;
     }

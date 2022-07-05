@@ -18,6 +18,18 @@ public record Currency(String alphaCode, Locale locale) {
                                                                               .collect(toMap(Currency::alphaCode,
                                                                                              identity()));
 
+    public Currency {
+        if (alphaCode == null) {
+            throw new IllegalArgumentException("Currency alpha code cannot be null");
+        }
+        if (alphaCode.length() != 3) {
+            throw new IllegalArgumentException("Currency alpha code should have exactly 3 characters");
+        }
+        if (locale == null) {
+            throw new IllegalArgumentException("Currency locale cannot be null");
+        }
+    }
+
     public static Currency create(String alphaCode, String languageTag) {
         var locale = Locale.forLanguageTag(languageTag);
         return new Currency(alphaCode, locale);

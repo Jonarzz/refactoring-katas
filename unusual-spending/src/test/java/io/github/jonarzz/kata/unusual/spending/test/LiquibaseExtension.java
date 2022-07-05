@@ -1,5 +1,8 @@
 package io.github.jonarzz.kata.unusual.spending.test;
 
+import static java.time.ZoneOffset.UTC;
+import static java.util.TimeZone.getTimeZone;
+
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
@@ -9,6 +12,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.sql.DriverManager;
+import java.util.TimeZone;
 
 public class LiquibaseExtension implements BeforeAllCallback {
 
@@ -20,11 +24,15 @@ public class LiquibaseExtension implements BeforeAllCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        var initialTimeZone = TimeZone.getDefault();
+        // simulate data being added using the repositories (timestamps converted to UTC)
+        TimeZone.setDefault(getTimeZone(UTC));
         var connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
         var database = DatabaseFactory.getInstance()
                                       .findCorrectDatabaseImplementation(new JdbcConnection(connection));
         var liquibase = new Liquibase(CHANGE_LOG_FILE, new ClassLoaderResourceAccessor(), database);
         liquibase.update(new Contexts());
+        TimeZone.setDefault(initialTimeZone);
     }
 
 }
