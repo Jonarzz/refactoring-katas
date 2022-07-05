@@ -8,11 +8,11 @@ public class Category {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Category name cannot be blank");
         }
-        this.name = name;
+        this.name = name.toLowerCase();
     }
 
     public static Category named(String name) {
-        return new Category(name.toLowerCase());
+        return new Category(name);
     }
 
     @Override
