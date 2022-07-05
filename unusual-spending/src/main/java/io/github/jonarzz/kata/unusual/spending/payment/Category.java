@@ -5,6 +5,9 @@ public class Category {
     private String name;
 
     private Category(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Category name cannot be blank");
+        }
         this.name = name;
     }
 

@@ -6,6 +6,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.TWO;
 import static java.time.Month.JUNE;
 import static java.time.Month.MAY;
+import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -23,6 +24,7 @@ import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
@@ -117,13 +119,24 @@ class PaymentRepositoryTest {
         }
 
         @Test
-        void save_currencyAndCategoryAlreadyExistInDatabase() {
+        void save_currencyAndCategoryAlreadyExistInDatabase_withoutProvidingTimestamp() {
             var payerId = ONE;
             var categoryName = "golf";
             var amount = 33.99;
             var currency = USD;
 
             saveAndAssert(payerId, categoryName, amount, currency);
+        }
+
+        @Test
+        void save_currencyAndCategoryAlreadyExistInDatabase_withProvidedTimestamp() {
+            var payerId = ONE;
+            var categoryName = "golf";
+            var amount = 33.99;
+            var currency = USD;
+            var timestamp = OffsetDateTime.of(2022, 7, 1, 11, 31, 43, 0, UTC);
+            
+            saveAndAssert(payerId, categoryName, amount, currency, timestamp);
         }
 
         @Test
@@ -147,19 +160,30 @@ class PaymentRepositoryTest {
         }
 
         private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency) {
+            saveAndAssert(payerId, categoryName, amount, currency, null);
+        }
+
+        private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency));
-            var timeBefore = OffsetDateTime.now();
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, OffsetDateTime.now());
+            var timeBefore = nowOrShifted(time, toShift -> toShift.minusSeconds(1));
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, time);
 
             repository.save(payment);
 
-            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, OffsetDateTime.now());
+            var timeAfter = nowOrShifted(time, toShift -> toShift.plusSeconds(1));
+            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, timeAfter);
             assertThat(saved)
                     .extracting("category.name", "cost.amount", "cost.currency")
                     .containsExactly(
                             tuple(categoryName, valueOf(amount), currency)
                     );
+        }
+
+        private OffsetDateTime nowOrShifted(OffsetDateTime time, UnaryOperator<OffsetDateTime> shifter) {
+            return Optional.ofNullable(time)
+                           .map(shifter)
+                           .orElseGet(OffsetDateTime::now);
         }
 
     }

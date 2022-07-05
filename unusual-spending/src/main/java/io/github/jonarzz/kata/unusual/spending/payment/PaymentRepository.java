@@ -1,5 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
+import static java.time.ZoneOffset.UTC;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
@@ -11,7 +12,6 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -19,8 +19,6 @@ import java.util.Optional;
 class PaymentRepository {
 
     private static final Logger LOG = Logger.getLogger(PaymentRepository.class);
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     private DatabaseFetchingAdapter queryingAdapter;
     private DatabaseModifyingAdapter modifyingAdapter;
@@ -42,9 +40,7 @@ class PaymentRepository {
                           + "WHERE payer_id = %s "
                           + "AND time >= TIMESTAMP '%s' "
                           + "AND time <= TIMESTAMP '%s'";
-        var formattedSql = sqlTemplate.formatted(payerId,
-                                                 from.format(DATE_TIME_FORMATTER),
-                                                 to.format(DATE_TIME_FORMATTER));
+        var formattedSql = sqlTemplate.formatted(payerId, toStringAtUtc(from), toStringAtUtc(to));
         return queryingAdapter.fetch(formattedSql, new PaymentRepositoryResultMapper());
     }
 
@@ -59,12 +55,13 @@ class PaymentRepository {
         createCurrencyIfDoesNotExist(currency);
         var category = details.category();
         createCategoryIfDoesNotExist(category);
+        var saved = toStringAtUtc(Optional.ofNullable(paymentEvent.timestamp())
+                                          .orElseGet(OffsetDateTime::now));
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_id, amount, currency, category, time, description) "
                                 + "VALUES ('%s', %s, %s, '%s', '%s', '%s', %s)"
                                         .formatted(paymentEvent.id(), payerId, cost.amount(), currency.alphaCode(), category,
-                                                   paymentEvent.timestamp()
-                                                               .format(ISO_OFFSET_DATE_TIME),
+                                                   saved,
                                                    Optional.ofNullable(details.description())
                                                            .map(description -> "'" + description + "'")
                                                            .orElse(null)));
@@ -89,5 +86,10 @@ class PaymentRepository {
         modifyingAdapter.modify("INSERT INTO category (name) "
                                 + "VALUES ('%s')"
                                         .formatted(category));
+    }
+
+    private String toStringAtUtc(OffsetDateTime from) {
+        return from.atZoneSameInstant(UTC)
+                   .format(ISO_OFFSET_DATE_TIME);
     }
 }

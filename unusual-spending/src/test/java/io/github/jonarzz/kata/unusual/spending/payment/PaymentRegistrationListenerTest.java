@@ -19,20 +19,24 @@ import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.activemq.artemis.spi.core.security.ActiveMQBasicSecurityManager;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.RepeatedTest;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.control.ActivateRequestContext;
 import javax.enterprise.event.Observes;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 
 @QuarkusTest
-@TestProfile(PaymentRegistrationListenerTest.Profile.class)
+@TestProfile(PaymentRegistrationListenerTest.ConfigProfile.class)
 class PaymentRegistrationListenerTest {
 
     static final String ARTEMIS_URL = "vm://localhost:61616";
@@ -44,9 +48,9 @@ class PaymentRegistrationListenerTest {
 
     static final EmbeddedActiveMQ EMBEDDED_ACTIVE_MQ = new EmbeddedActiveMQ();
 
-    static final int SINGLE_RUN_MESSAGE_COUNT = 10;
+    static final int SINGLE_RUN_EVENT_COUNT = 10;
 
-    static CountDownLatch messagesLatch = new CountDownLatch(SINGLE_RUN_MESSAGE_COUNT);
+    static CountDownLatch messagesLatch = new CountDownLatch(SINGLE_RUN_EVENT_COUNT);
     static Collection<PaymentRegisteredEvent> polledEvents = new ArrayList<>();
 
     static class MessageData {
@@ -57,52 +61,90 @@ class PaymentRegistrationListenerTest {
         static final String CATEGORY = "travel";
         static final BigDecimal AMOUNT = BigDecimal.valueOf(375.89);
         static final String CURRENCY = "USD";
+        static final String LANGUAGE_TAG = "en-US";
+        static final Locale LOCALE = Locale.US;
     }
 
     @BeforeEach
     void setUp() {
-        messagesLatch = new CountDownLatch(SINGLE_RUN_MESSAGE_COUNT);
+        messagesLatch = new CountDownLatch(SINGLE_RUN_EVENT_COUNT);
         polledEvents.clear();
+    }
 
+    @Nested
+    class EventsAreConsumed {
+
+        @RepeatedTest(5)
+        void currencyAsStringValue() throws InterruptedException {
+            var currencyJsonValue = "\"" + MessageData.CURRENCY + "\"";
+            sendEvents(payerId -> createMessageWithExplicitCurrencyJsonPart(payerId, currencyJsonValue));
+
+            awaitForEventsToBePolled();
+
+            assertPolledEvents();
+        }
+
+        @RepeatedTest(5)
+        void currencyAsJsonObject() throws InterruptedException {
+            var currencyJson = """
+                      {
+                      "alphaCode": "%s",
+                      "languageTag": "%s"
+                    }""".formatted(MessageData.CURRENCY,
+                                   MessageData.LANGUAGE_TAG);
+            sendEvents(payerId -> createMessageWithExplicitCurrencyJsonPart(payerId, currencyJson));
+
+            awaitForEventsToBePolled();
+
+            assertPolledEvents();
+        }
+
+    }
+
+    private static void sendEvents(Function<Integer, String> messageForIterationCreator) {
         try (var connectionFactory = new ActiveMQConnectionFactory(ARTEMIS_URL, PRODUCER_USERNAME, PRODUCER_PASSWORD);
              var context = connectionFactory.createContext(AUTO_ACKNOWLEDGE)) {
             var paymentQueue = context.createQueue("paymentQueue");
             var producer = context.createProducer();
-            for (int payerId = 1; payerId <= SINGLE_RUN_MESSAGE_COUNT; payerId++) {
-                // TODO currency as object is not parsed properly
-                producer.send(paymentQueue, """
-                        {
-                          "id": "%s",
-                          "timestamp": "%s",
-                          "payerId": %d,
-                          "details": {
-                            "category": "%s",
-                            "cost": {
-                               "amount": %s,
-                               "currency": "%s"
-                            }
-                          }
-                        }
-                        """.formatted(MessageData.ID,
-                                      MessageData.TIMESTAMP_STRING,
-                                      payerId,
-                                      MessageData.CATEGORY,
-                                      MessageData.AMOUNT,
-                                      MessageData.CURRENCY));
+            for (int payerId = 1; payerId <= SINGLE_RUN_EVENT_COUNT; payerId++) {
+                producer.send(paymentQueue, messageForIterationCreator.apply(payerId));
             }
         }
     }
 
-    @RepeatedTest(5)
-    void messagesAreConsumed() throws InterruptedException {
+    private static String createMessageWithExplicitCurrencyJsonPart(int payerId, String currencyJsonPart) {
+        return """
+                {
+                  "id": "%s",
+                  "payerId": "%s",
+                  "timestamp": "%s",
+                  "details": {
+                    "category": "%s",
+                    "cost": {
+                       "amount": %s,
+                       "currency": %s
+                    }
+                  }
+                }
+                """.formatted(MessageData.ID,
+                              payerId,
+                              MessageData.TIMESTAMP_STRING,
+                              MessageData.CATEGORY,
+                              MessageData.AMOUNT,
+                              currencyJsonPart);
+    }
+
+    private void awaitForEventsToBePolled() throws InterruptedException {
         assertThat(messagesLatch.await(1, SECONDS))
                 .as("Latch counting %d messages stopped at %d",
-                    SINGLE_RUN_MESSAGE_COUNT, messagesLatch.getCount())
+                    SINGLE_RUN_EVENT_COUNT, messagesLatch.getCount())
                 .isTrue();
+    }
 
+    private void assertPolledEvents() {
         assertThat(polledEvents)
                 .as("Polled events")
-                .hasSize(SINGLE_RUN_MESSAGE_COUNT)
+                .hasSize(SINGLE_RUN_EVENT_COUNT)
                 .allSatisfy(paymentEvent -> assertThat(paymentEvent)
                         .returns(MessageData.ID, event -> event.id().toString())
                         .returns(MessageData.TIMESTAMP, PaymentRegisteredEvent::timestamp)
@@ -112,10 +154,23 @@ class PaymentRegistrationListenerTest {
                                 .extracting(PaymentDetails::cost)
                                 .returns(MessageData.AMOUNT, Cost::amount)
                                 .extracting(Cost::currency)
-                                .returns(MessageData.CURRENCY, Currency::alphaCode))
+                                .returns(MessageData.CURRENCY, Currency::alphaCode)
+                                .returns(MessageData.LOCALE, Currency::locale))
                         .extracting(PaymentRegisteredEvent::payerId)
                         .extracting(BigInteger::intValue, INTEGER)
-                        .isBetween(1, SINGLE_RUN_MESSAGE_COUNT));
+                        .isBetween(1, SINGLE_RUN_EVENT_COUNT));
+    }
+
+    public static class ConfigProfile implements QuarkusTestProfile {
+
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of(
+                    "quarkus.artemis.url", ARTEMIS_URL,
+                    "quarkus.artemis.username", CONSUMER_USERNAME,
+                    "quarkus.artemis.password", CONSUMER_PASSWORD
+            );
+        }
     }
 
     @ApplicationScoped
@@ -134,27 +189,16 @@ class PaymentRegistrationListenerTest {
         }
     }
 
-    public static class Profile implements QuarkusTestProfile {
-
-        @Override
-        public Map<String, String> getConfigOverrides() {
-            return Map.of(
-                    "quarkus.artemis.url", ARTEMIS_URL,
-                    "quarkus.artemis.username", CONSUMER_USERNAME,
-                    "quarkus.artemis.password", CONSUMER_PASSWORD
-            );
-        }
-    }
-
     @Mock
     @ApplicationScoped
-    static class MockPaymentService extends PaymentService {
+    static class FakePaymentService extends PaymentService {
 
-        MockPaymentService() {
-            super(null);
+        FakePaymentService() {
+            super(null, null);
         }
 
         @Override
+        @ActivateRequestContext
         public void save(PaymentRegisteredEvent paymentEvent) {
             messagesLatch.countDown();
             polledEvents.add(paymentEvent);

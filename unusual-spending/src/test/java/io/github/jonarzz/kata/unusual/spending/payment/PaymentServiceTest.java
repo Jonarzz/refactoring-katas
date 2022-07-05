@@ -5,29 +5,44 @@ import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.
 import static java.math.BigInteger.ONE;
 import static java.time.Month.MAY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
+import org.assertj.core.api.ThrowableAssert;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import javax.validation.Validation;
+import javax.validation.ValidatorFactory;
 import java.math.BigInteger;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 class PaymentServiceTest {
 
-    BigInteger payerId = ONE;
+    static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
 
-    PaymentRepository repository = mock(PaymentRepository.class);
-    PaymentService aggregator = new PaymentService(repository);
+    final BigInteger payerId = ONE;
+
+    final PaymentRepository repository = mock(PaymentRepository.class);
+    final PaymentService service = new PaymentService(VALIDATOR_FACTORY.getValidator(), repository);
+
+    @AfterAll
+    static void afterAll() {
+        VALIDATOR_FACTORY.close();
+    }
 
     @Nested
     class CalculateTotalExpenseByCategory {
@@ -39,7 +54,7 @@ class PaymentServiceTest {
             when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(List.of());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .isEmpty();
@@ -58,7 +73,7 @@ class PaymentServiceTest {
                                                .map(entry -> new PaymentDetails(entry.getKey(), entry.getValue()))
                                                .toList());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsExactlyInAnyOrderEntriesOf(priceByCategory);
@@ -75,7 +90,7 @@ class PaymentServiceTest {
                                                     .mapToObj(dollars -> new PaymentDetails(category, usd(dollars, 0)))
                                                     .toList());
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(entry(category, usd(dollarsSum, 0)));
@@ -95,7 +110,7 @@ class PaymentServiceTest {
                             new PaymentDetails(categorySummingUpTo4, usd(1, 0))
                     ));
 
-            var result = aggregator.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(
@@ -104,6 +119,77 @@ class PaymentServiceTest {
                     );
         }
 
+    }
+
+    @Nested
+    class SaveTest {
+
+        final UUID id = UUID.randomUUID();
+        final OffsetDateTime timestamp = OffsetDateTime.now();
+
+        @Test
+        void emptyEvent() {
+            var event = new PaymentRegisteredEvent(null, null, null, null);
+
+            ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
+
+            assertThatThrownBy(methodUnderTest)
+                    .hasMessageStartingWith("Event validation failed. ")
+                    .hasMessageContainingAll(
+                            "Event ID cannot be null. ",
+                            "Payer ID cannot be null. ",
+                            "Payment details cannot be null. "
+                    );
+        }
+
+        @Test
+        void eventWithNegativePayerId() {
+            var negativePayerId = BigInteger.valueOf(-5);
+            var details = new PaymentDetails(
+                    Category.named("groceries"),
+                    Cost.usd(11.05)
+            );
+            var event = new PaymentRegisteredEvent(id, negativePayerId, details, null);
+
+            ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
+
+            assertThatThrownBy(methodUnderTest)
+                    .hasMessageStartingWith("Event validation failed. ")
+                    .hasMessageContainingAll(
+                            "ID should be a positive integer. "
+                    );
+        }
+
+        @Test
+        void minimalValidEvent() {
+            var id = this.id;
+            var paymentDetails = new PaymentDetails(
+                    Category.named("travel"),
+                    Cost.usd(12.35)
+            );
+            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails, null);
+
+            service.save(event);
+
+            verify(repository)
+                    .save(event);
+        }
+
+        @Test
+        void eventWithAllDataFilled() {
+            var id = this.id;
+            var paymentDetails = new PaymentDetails(
+                    Category.named("travel"),
+                    Cost.usd(12.35),
+                    "Payment description"
+            );
+            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails, timestamp);
+
+            service.save(event);
+
+            verify(repository)
+                    .save(event);
+        }
     }
 
 }

@@ -1,11 +1,14 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -14,9 +17,11 @@ public class PaymentService {
 
     private static final Logger LOG = Logger.getLogger(PaymentService.class);
 
+    private Validator validator;
     private PaymentRepository paymentRepository;
 
-    public PaymentService(PaymentRepository paymentRepository) {
+    public PaymentService(Validator validator, PaymentRepository paymentRepository) {
+        this.validator = validator;
         this.paymentRepository = paymentRepository;
     }
 
@@ -34,7 +39,15 @@ public class PaymentService {
     }
 
     public void save(PaymentRegisteredEvent paymentEvent) {
-        // TODO validation
+        var validationErrors = validator.validate(paymentEvent);
+        if (!validationErrors.isEmpty()) {
+            throw new IllegalArgumentException("Event validation failed. "
+                                               + validationErrors.stream()
+                                                                 .map(ConstraintViolation::getMessage)
+                                                                 .collect(joining(". "))
+                                               + ". Validated object: "
+                                               + paymentEvent);
+        }
         LOG.debugf("Saving %s", paymentEvent);
         paymentRepository.save(paymentEvent);
     }
