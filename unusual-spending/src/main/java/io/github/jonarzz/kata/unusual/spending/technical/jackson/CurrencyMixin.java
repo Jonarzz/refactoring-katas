@@ -20,14 +20,12 @@ interface CurrencyMixin {
         @Override
         public Currency deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException {
             var node = jsonParser.readValueAsTree();
-            if (node instanceof ValueNode valueNode) {
-                return Currency.getInstance(valueNode.asText());
-            }
-            if (node instanceof ObjectNode objectNode) {
-                return Currency.create(getValue(objectNode, "alphaCode"),
-                                       getValue(objectNode, "languageTag"));
-            }
-            return null;
+            return switch (node) {
+                case ValueNode valueNode -> Currency.getInstance(valueNode.asText());
+                case ObjectNode objectNode -> Currency.create(getValue(objectNode, "alphaCode"),
+                                                              getValue(objectNode, "languageTag"));
+                default -> null;
+            };
         }
 
         private String getValue(ObjectNode objectNode, String property) {
