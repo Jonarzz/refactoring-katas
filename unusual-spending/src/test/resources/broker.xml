@@ -2,6 +2,8 @@
                xsi:schemaLocation="urn:activemq https://raw.githubusercontent.com/apache/activemq-artemis/main/artemis-server/src/main/resources/schema/artemis-configuration.xsd">
     <core xmlns="urn:activemq:core">
 
+        <!-- TODO configure k8s ConfigMap similar to this file (different configuration) -->
+
         <acceptors>
             <acceptor name="netty">vm://localhost:61616</acceptor>
         </acceptors>
@@ -9,15 +11,22 @@
         <security-settings>
             <security-setting match="#">
                 <permission type="send" roles="prod"/>
+                <permission type="createDurableQueue" roles="cons"/>
                 <permission type="consume" roles="cons"/>
             </security-setting>
         </security-settings>
 
+        <address-settings>
+            <address-setting match="#">
+                <max-delivery-attempts>1</max-delivery-attempts>
+                <auto-create-expiry-resources>true</auto-create-expiry-resources>
+                <auto-create-dead-letter-resources>true</auto-create-dead-letter-resources>
+            </address-setting>
+        </address-settings>
+
         <addresses>
-            <address name="paymentQueue">
-                <anycast>
-                    <queue name="paymentQueue"/>
-                </anycast>
+            <address name="payment/register/v1">
+                <multicast/>
             </address>
         </addresses>
     </core>

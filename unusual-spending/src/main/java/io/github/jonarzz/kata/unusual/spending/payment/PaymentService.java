@@ -25,7 +25,7 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    // TODO web API (GraphQL)
+    // TODO web API (GraphQL) in a different MS
 
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
                                                          BigInteger userId, AggregationTimespan timespan) {

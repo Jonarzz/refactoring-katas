@@ -55,7 +55,7 @@ Example of such an event:
 ```
 
 ##### UserCreatedEvent
-TBD
+TBD (move to a different MS)
 
 ## Kubernetes cluster
 All the microservices were organized into a Kubernetes cluster.
