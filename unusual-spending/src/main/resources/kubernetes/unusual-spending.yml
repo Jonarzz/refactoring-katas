@@ -50,29 +50,63 @@ spec:
             - name: QUARKUS_LOG_LEVEL
               value: DEBUG
             # JMS
+            - name: JMS_PAYMENT_DESTINATION
+              value: payment/register/v1
+            - name: JMS_PAYMENT_CLIENT_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: QUARKUS_ARTEMIS_URL
               value: tcp://jms-broker:61616
-              # TODO k8s secret
             - name: QUARKUS_ARTEMIS_USERNAME
-              value: artemis
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: jms-username
             - name: QUARKUS_ARTEMIS_PASSWORD
-              value: artemis
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: jms-password
             # database
             - name: DATABASE_PAYMENT_URL
               value: jdbc:h2:tcp://database:1521/payment
             - name: DATABASE_PAYMENT_USERNAME
-              value: sa
-              # H2 password for user 'sa' is empty by default
-      initContainers:
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: database-username
+            - name: DATABASE_PAYMENT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: database-password
+      initContainers: # TODO run as part of Quarkus startup
         - name: liquibase
           image: liquibase/liquibase:4.12
           imagePullPolicy: IfNotPresent
           command:
             - liquibase
-            - '--defaultsFile=custom-config/payment-liquibase.properties'
+            - update
+          args:
+            - '--url=jdbc:h2:tcp://database:1521/payment'
+            - '--username=$(DATABASE_USERNAME)'
+            - '--password=$(DATABASE_PASSWORD)'
+            - '--changelog-file=create-payment-tables.yaml'
             - '--classpath=/liquibase/custom-config'
             - '--log-level=INFO'
-            - update
+          env:
+            # H2 username and password are set on first connection to the payment database
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: database-username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: database-password
           volumeMounts:
             - name: payment-liquibase-changelog
               mountPath: /liquibase/custom-config

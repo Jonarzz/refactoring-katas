@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 @Mock
 @ApplicationScoped
-public class TestAggregatingPaymentService extends PaymentService {
+class TestAggregatingPaymentService extends PaymentService {
 
     @ConfigProperty(name = "test.single-run-event-count", defaultValue = "10")
     int singleRunEventCount;

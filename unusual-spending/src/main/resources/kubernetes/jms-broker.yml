@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: artemis-journal
+  name: artemis-data
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 10Mi
+      storage: 100Mi
 ---
 apiVersion: v1
 kind: Service
@@ -31,6 +31,50 @@ kind: ConfigMap
 metadata:
   name: artemis-etc
 data:
+  broker.xml: |
+    <configuration xmlns="https://activemq.apache.org/schema">
+        
+        <core>
+            
+            <name>broker</name>
+            
+            <persistence-enabled>true</persistence-enabled>
+            
+            <acceptors>
+                <acceptor name="artemis">tcp://0.0.0.0:61616</acceptor>
+            </acceptors>
+            
+            <security-settings>
+                <security-setting match="#">
+                    <permission type="createNonDurableQueue" roles="admin"/>
+                    <permission type="deleteNonDurableQueue" roles="admin"/>
+                    <permission type="createDurableQueue" roles="admin"/>
+                    <permission type="deleteDurableQueue" roles="admin"/>
+                    <permission type="consume" roles="admin"/>
+                    <permission type="browse" roles="admin"/>
+                    <permission type="send" roles="admin"/>
+                </security-setting>
+            </security-settings>
+            
+            <address-settings>
+                <address-setting match="#">
+                    <auto-create-expiry-resources>true</auto-create-expiry-resources>
+                    <auto-create-dead-letter-resources>true</auto-create-dead-letter-resources>
+                    <max-delivery-attempts>3</max-delivery-attempts>
+                    <redelivery-delay>1000</redelivery-delay>
+                </address-setting>
+            </address-settings>
+            
+            <addresses>
+                <address name="payment/register/v1">
+                    <multicast>
+                        <queue name="payment/register/v1"/>
+                    </multicast>
+                </address>
+            </addresses>
+            
+        </core>
+    </configuration>
   jolokia-access.xml: |
     <restrict>
       <cors>
@@ -39,6 +83,19 @@ data:
         <allow-origin>*://localhost*</allow-origin>
       </cors>
     </restrict>
+  login.config: |
+    activemq {
+       org.apache.activemq.artemis.spi.core.security.jaas.PropertiesLoginModule required
+           debug=false
+           org.apache.activemq.jaas.properties.user="users.properties"
+           org.apache.activemq.jaas.properties.role="roles.properties";
+    };
+  # TODO k8s does not allow referencing secrets from config maps: https://github.com/kubernetes/kubernetes/issues/79224
+  #      this should be mounted as a file from the secret
+  users.properties: |
+    artemis = artemis
+  roles.properties: |
+    admin = artemis
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -61,30 +118,48 @@ spec:
           imagePullPolicy: IfNotPresent
           name: jms-broker
           env:
-            # TODO login and password as k8s Secret
-            - name: AMQ_USER
-              value: artemis
-            - name: AMQ_PASSWORD
-              value: artemis
             - name: AMQ_EXTRA_ARGS
-              value: --nio --http-host 0.0.0.0 --host 0.0.0.0 --queues paymentQueue # --require-login
+              value: --nio --http-host 0.0.0.0 --host 0.0.0.0 --require-login --etc /volume/etc --data /volume/data
+            - name: AMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: jms-username
+            - name: AMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-secret
+                  key: jms-password
           ports:
             - containerPort: 61616
               name: jms
             - containerPort: 8161
               name: ui
           volumeMounts:
-            - name: journal
-              mountPath: ~/broker/data/journal
-            - name: jolokia-access
-              mountPath: ~/broker/etc
+            - name: data
+              mountPath: /volume/data
+            - name: etc-target
+              mountPath: /volume/etc
       volumes:
-        - name: journal
+        - name: data
           persistentVolumeClaim:
-            claimName: artemis-journal
-        - name: jolokia-access
+            claimName: artemis-data
+        - name: etc-source
           configMap:
             name: artemis-etc
-            items:
-              - key: jolokia-access.xml
-                path: jolokia-access.xml
+        - name: etc-target
+          emptyDir: {}
+      initContainers:
+        - name: copy-etc
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          command:
+            - cp
+            - -r
+            - /tmp/etc
+            - /volume/etc
+          volumeMounts:
+            - name: etc-source
+              mountPath: /tmp/etc
+            - name: etc-target
+              mountPath: /volume/etc

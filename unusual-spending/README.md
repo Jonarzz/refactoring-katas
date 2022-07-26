@@ -113,3 +113,50 @@ and [minikube](https://minikube.sigs.k8s.io/docs/commands/) commands pages for m
 ### Recommended reading
 - https://learnk8s.io/spring-boot-kubernetes-guide
 - https://learnk8s.io/blog/kubectl-productivity
+
+### Pods SSH commands
+#### jms-broker
+
+Send a message:
+```shell
+broker/bin/artemis producer \
+--destination topic://payment/register/v1 \
+--user artemis \
+--password artemis \
+--message-count 1 \
+--message '{
+"id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
+"timestamp": "2022-07-24T12:13:57+02",
+"payerId": 1,
+"details": {
+  "category": "groceries",
+  "description": "Credit card payment at Walmart",
+  "cost": {
+    "amount": 37.99,
+    "currency": "USD"
+}}}'
+```
+
+```shell
+broker/bin/artemis producer \
+--destination topic://payment/register/v1 \
+--user artemis \
+--password artemis \
+--message-count 1 \
+--message '{
+"id": "aa1d8c9f-c7fb-486d-9c44-96008b30117b",
+"timestamp": "2022-07-25T13:13:21+02",
+"payerId": 1,
+"details": {
+  "category": "groceries",
+  "cost": {
+    "amount": 117.35,
+    "currency": {
+      "alphaCode": "PLN",
+      "languageTag": "pl-PL"
+    }
+}}}'
+```
+
+Check queue state:
+`broker/bin/artemis queue stat --user artemis --password artemis --queueName payment/register/v1`

@@ -31,7 +31,7 @@ class PaymentRepositoryTest {
 
     PaymentRepository repository = new PaymentRepository(LiquibaseExtension.URL,
                                                          LiquibaseExtension.USERNAME,
-                                                         Optional.of(LiquibaseExtension.PASSWORD));
+                                                         LiquibaseExtension.PASSWORD);
 
     @Nested
     @ExtendWith(LiquibaseExtension.class)
@@ -159,6 +159,27 @@ class PaymentRepositoryTest {
             saveAndAssert(payerId, categoryName, amount, currency);
         }
 
+        @Test
+        void save_tryToSaveSameEventTwice() {
+            var payerId = ONE;
+            var categoryName = "golf";
+            var details = new PaymentDetails(Category.named(categoryName),
+                                             Cost.create(12.34, USD));
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, null);
+            var timeBefore = OffsetDateTime.now();
+
+            assertThat(repository.save(payment))
+                    .as("First save")
+                    .isTrue();
+            assertThat(repository.save(payment))
+                    .as("Second save")
+                    .isFalse();
+
+            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, OffsetDateTime.now());
+            assertThat(saved)
+                    .hasSize(1);
+        }
+
         private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency) {
             saveAndAssert(payerId, categoryName, amount, currency, null);
         }
@@ -166,12 +187,12 @@ class PaymentRepositoryTest {
         private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency));
-            var timeBefore = nowOrShifted(time, toShift -> toShift.minusSeconds(1));
+            var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
             var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, time);
 
             repository.save(payment);
 
-            var timeAfter = nowOrShifted(time, toShift -> toShift.plusSeconds(1));
+            var timeAfter = shiftedOrNow(time, toShift -> toShift.plusSeconds(1));
             var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, timeAfter);
             assertThat(saved)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -180,7 +201,7 @@ class PaymentRepositoryTest {
                     );
         }
 
-        private OffsetDateTime nowOrShifted(OffsetDateTime time, UnaryOperator<OffsetDateTime> shifter) {
+        private OffsetDateTime shiftedOrNow(OffsetDateTime time, UnaryOperator<OffsetDateTime> shifter) {
             return Optional.ofNullable(time)
                            .map(shifter)
                            .orElseGet(OffsetDateTime::now);
@@ -194,7 +215,7 @@ class PaymentRepositoryTest {
         PaymentRepository invalidRepository = new PaymentRepository(
                 "invalid url",
                 "invalid user",
-                Optional.of("invalid password")
+                "invalid password"
         );
 
         @Test

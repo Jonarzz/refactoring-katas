@@ -25,12 +25,10 @@ class PaymentRepository {
 
     PaymentRepository(@ConfigProperty(name = "database.payment.url") String url,
                       @ConfigProperty(name = "database.payment.username") String user,
-                      // ugly H2 workaround to save time - default 'sa' user password is empty; Quarkus ignores an empty default value
-                      @ConfigProperty(name = "database.payment.password") Optional<String> password) {
-        var passwordValue = password.orElse("");
+                      @ConfigProperty(name = "database.payment.password") String password) {
         LOG.infof("Creating database adapters for URL '%s' and user '%s", url, user);
-        modifyingAdapter = new DatabaseModifyingAdapter(url, user, passwordValue);
-        queryingAdapter = new DatabaseFetchingAdapter(url, user, passwordValue);
+        modifyingAdapter = new DatabaseModifyingAdapter(url, user, password);
+        queryingAdapter = new DatabaseFetchingAdapter(url, user, password);
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(BigInteger payerId, OffsetDateTime from, OffsetDateTime to) {
@@ -44,10 +42,14 @@ class PaymentRepository {
         return queryingAdapter.fetch(formattedSql, new PaymentRepositoryResultMapper());
     }
 
-    public void save(PaymentRegisteredEvent paymentEvent) {
+    public boolean save(PaymentRegisteredEvent paymentEvent) {
         var payerId = paymentEvent.payerId();
         if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = " + payerId)) {
             throw new IllegalStateException("Payer with ID " + payerId + " does not exist");
+        }
+        var eventId = paymentEvent.id();
+        if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = '" + eventId + "'")) {
+            return false;
         }
         var details = paymentEvent.details();
         var cost = details.cost();
@@ -55,16 +57,16 @@ class PaymentRepository {
         createCurrencyIfDoesNotExist(currency);
         var category = details.category();
         createCategoryIfDoesNotExist(category);
-        var saved = toStringAtUtc(Optional.ofNullable(paymentEvent.timestamp())
+        var time = toStringAtUtc(Optional.ofNullable(paymentEvent.timestamp())
                                           .orElseGet(OffsetDateTime::now));
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_id, amount, currency, category, time, description) "
                                 + "VALUES ('%s', %s, %s, '%s', '%s', '%s', %s)"
-                                        .formatted(paymentEvent.id(), payerId, cost.amount(), currency.alphaCode(), category,
-                                                   saved,
+                                        .formatted(eventId, payerId, cost.amount(), currency.alphaCode(), category, time,
                                                    Optional.ofNullable(details.description())
                                                            .map(description -> "'" + description + "'")
                                                            .orElse(null)));
+        return true;
     }
 
     private void createCurrencyIfDoesNotExist(Currency currency) {

@@ -7,6 +7,7 @@ import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.control.ActivateRequestContext;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.math.BigInteger;
@@ -38,6 +39,7 @@ public class PaymentService {
                                                Cost::add));
     }
 
+    @ActivateRequestContext
     public void save(PaymentRegisteredEvent paymentEvent) {
         var validationErrors = validator.validate(paymentEvent);
         if (!validationErrors.isEmpty()) {
@@ -49,7 +51,9 @@ public class PaymentService {
                                                + paymentEvent);
         }
         LOG.debugf("Saving %s", paymentEvent);
-        paymentRepository.save(paymentEvent);
+        if (!paymentRepository.save(paymentEvent)) {
+            LOG.infof("Event with ID %s has been saved already", paymentEvent.id());
+        }
     }
 
 }

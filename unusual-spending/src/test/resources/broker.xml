@@ -2,8 +2,6 @@
                xsi:schemaLocation="urn:activemq https://raw.githubusercontent.com/apache/activemq-artemis/main/artemis-server/src/main/resources/schema/artemis-configuration.xsd">
     <core xmlns="urn:activemq:core">
 
-        <!-- TODO configure k8s ConfigMap similar to this file (different configuration) -->
-
         <acceptors>
             <acceptor name="netty">vm://localhost:61616</acceptor>
         </acceptors>
@@ -26,7 +24,9 @@
 
         <addresses>
             <address name="payment/register/v1">
-                <multicast/>
+                <multicast>
+                    <queue name="payment/register/v1"/>
+                </multicast>
             </address>
         </addresses>
     </core>
