@@ -54,11 +54,11 @@ public class Cost implements Comparable<Cost> {
         return new Cost(currency, amount.add(other.amount));
     }
 
-    public Currency currency() {
+    public Currency getCurrency() {
         return currency;
     }
 
-    public BigDecimal amount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 

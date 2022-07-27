@@ -7,6 +7,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
@@ -23,7 +24,12 @@ class TestAggregatingPaymentService extends PaymentService {
     private Collection<PaymentRegisteredEvent> processedEvents;
 
     TestAggregatingPaymentService() {
-        super(null, null);
+        this(null);
+    }
+
+    @Inject
+    TestAggregatingPaymentService(PaymentRepository paymentRepository) {
+        super(null, paymentRepository);
     }
 
     @Override

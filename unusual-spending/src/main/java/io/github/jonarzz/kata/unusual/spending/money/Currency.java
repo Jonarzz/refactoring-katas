@@ -3,6 +3,9 @@ package io.github.jonarzz.kata.unusual.spending.money;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+import io.smallrye.graphql.api.AdaptWith;
+import io.smallrye.graphql.api.Adapter;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -10,7 +13,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public record Currency(String alphaCode, Locale locale) {
+public record Currency(
+        String alphaCode,
+        @AdaptWith(CurrencyLocaleAdapter.class)
+        Locale locale
+) {
 
     public static final Currency USD = new Currency("USD", Locale.US);
 
@@ -31,7 +38,7 @@ public record Currency(String alphaCode, Locale locale) {
     }
 
     public static Currency create(String alphaCode, String languageTag) {
-        var locale = Locale.forLanguageTag(languageTag);
+        var locale = CurrencyLocaleAdapter.localeFrom(languageTag);
         return new Currency(alphaCode, locale);
     }
 
@@ -47,6 +54,27 @@ public record Currency(String alphaCode, Locale locale) {
     }
 
     public String languageTag() {
-        return locale.toLanguageTag();
+        return CurrencyLocaleAdapter.languageTagFrom(locale);
+    }
+
+    public static class CurrencyLocaleAdapter implements Adapter<Locale, String> {
+
+        @Override
+        public String to(Locale locale) {
+            return languageTagFrom(locale);
+        }
+
+        @Override
+        public Locale from(String string) {
+            return localeFrom(string);
+        }
+
+        private static String languageTagFrom(Locale locale) {
+            return locale.toLanguageTag();
+        }
+
+        private static Locale localeFrom(String languageTag) {
+            return Locale.forLanguageTag(languageTag);
+        }
     }
 }

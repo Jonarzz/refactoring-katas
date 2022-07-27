@@ -10,7 +10,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.control.ActivateRequestContext;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
-import java.math.BigInteger;
+import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.Map;
 
 @ApplicationScoped
@@ -26,10 +27,8 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
-    // TODO web API (GraphQL) in a different MS
-
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
-                                                         BigInteger userId, AggregationTimespan timespan) {
+                                                         Long userId, AggregationTimespan timespan) {
         LOG.debugf("Aggregating total user expenses with %s policy for user with ID %s in %s",
                    policy, userId, timespan);
         return paymentRepository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end())
@@ -39,8 +38,13 @@ public class PaymentService {
                                                Cost::add));
     }
 
+    Collection<PaymentDetails> getUserPayments(long userId, OffsetDateTime from, OffsetDateTime to) {
+        LOG.debugf("Retrieving payments of user with ID: %s between %s and %s", userId, from, to);
+        return paymentRepository.getPaymentDetailsBetween(userId, from, to);
+    }
+
     @ActivateRequestContext
-    public void save(PaymentRegisteredEvent paymentEvent) {
+    void save(PaymentRegisteredEvent paymentEvent) {
         var validationErrors = validator.validate(paymentEvent);
         if (!validationErrors.isEmpty()) {
             throw new IllegalArgumentException("Event validation failed. "

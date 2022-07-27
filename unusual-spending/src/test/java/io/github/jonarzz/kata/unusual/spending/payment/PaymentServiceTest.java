@@ -2,7 +2,6 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
-import static java.math.BigInteger.ONE;
 import static java.time.Month.MAY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
-import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -34,7 +32,7 @@ class PaymentServiceTest {
 
     static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
 
-    final BigInteger payerId = ONE;
+    final long payerId = 1;
 
     final PaymentRepository repository = mock(PaymentRepository.class);
     final PaymentService service = new PaymentService(VALIDATOR_FACTORY.getValidator(), repository);
@@ -144,7 +142,7 @@ class PaymentServiceTest {
 
         @Test
         void eventWithNegativePayerId() {
-            var negativePayerId = BigInteger.valueOf(-5);
+            var negativePayerId = -5L;
             var details = new PaymentDetails(
                     Category.named("groceries"),
                     Cost.usd(11.05)

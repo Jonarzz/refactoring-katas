@@ -11,7 +11,6 @@ import io.github.jonarzz.kata.unusual.spending.expense.ExpenseService;
 import io.github.jonarzz.kata.unusual.spending.expense.UnusualExpense;
 import org.jboss.logging.Logger;
 
-import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.Collection;
 import java.util.Optional;
@@ -42,7 +41,7 @@ public class UnusualExpensesNotificationService {
     // TODO front-end
     // TODO Cypress tests
 
-    public Optional<String> createNotificationBody(BigInteger userId) {
+    public Optional<String> createNotificationBody(long userId) {
         LOG.debugf("Creating notification body for user with ID %s", userId);
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);

@@ -4,7 +4,6 @@ import static io.github.jonarzz.kata.unusual.spending.expense.MultiplicationThre
 import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparisonCriteria.forUserId;
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
-import static java.math.BigInteger.TWO;
 import static java.time.Month.APRIL;
 import static java.time.Month.MAY;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,13 +19,12 @@ import io.github.jonarzz.kata.unusual.spending.payment.Category;
 import io.github.jonarzz.kata.unusual.spending.payment.PaymentService;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigInteger;
 import java.time.YearMonth;
 import java.util.Map;
 
 class ExpenseServiceTest {
 
-    static final BigInteger PAYER_ID = TWO;
+    static final long PAYER_ID = 2;
 
     AggregationPolicy<Category> aggregationPolicy = category();
     AggregationTimespan fromCurrentTimespan = AggregationTimespan.of(YearMonth.of(2022, APRIL));

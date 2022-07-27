@@ -1,7 +1,6 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
-import static java.math.BigInteger.ONE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.jonarzz.kata.unusual.spending.expense.FakeExpenseService;
@@ -18,9 +17,8 @@ class UnusualExpensesNotificationServiceTest {
     @Test
     void noUnusualExpenses() {
         var notificationService = createServiceReturning(Map.of());
-        var userId = ONE;
 
-        var body = notificationService.createNotificationBody(userId);
+        var body = notificationService.createNotificationBody(1);
 
         assertThat(body)
                 .isEmpty();
@@ -31,9 +29,8 @@ class UnusualExpensesNotificationServiceTest {
         var notificationService = createServiceReturning(Map.of(
                 Category.named("GOLF"), usd(123, 85)
         ));
-        var userId = ONE;
 
-        var body = notificationService.createNotificationBody(userId);
+        var body = notificationService.createNotificationBody(1);
 
         assertThat(body)
                 .hasValue("""
@@ -54,9 +51,8 @@ class UnusualExpensesNotificationServiceTest {
                 Category.named("traVEL"), usd(990, 99),
                 Category.named("enTERTAINment"), usd(257, 13)
         ));
-        var userId = ONE;
 
-        var body = notificationService.createNotificationBody(userId);
+        var body = notificationService.createNotificationBody(1);
 
         assertThat(body)
                 .hasValue("""

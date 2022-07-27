@@ -5,7 +5,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static javax.jms.JMSContext.AUTO_ACKNOWLEDGE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.INTEGER;
+import static org.assertj.core.api.InstanceOfAssertFactories.LONG;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
@@ -22,7 +22,6 @@ import org.junit.jupiter.api.RepeatedTest;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Map;
@@ -135,13 +134,13 @@ class PaymentRegistrationListenerTest {
                                 .returns(MessageData.CATEGORY, details -> details.category()
                                                                                  .toString())
                                 .extracting(PaymentDetails::cost)
-                                .returns(MessageData.AMOUNT, Cost::amount)
-                                .extracting(Cost::currency)
+                                .returns(MessageData.AMOUNT, Cost::getAmount)
+                                .extracting(Cost::getCurrency)
                                 .returns(MessageData.CURRENCY, Currency::alphaCode)
                                 .returns(MessageData.LOCALE, Currency::locale))
                         .extracting(PaymentRegisteredEvent::payerId)
-                        .extracting(BigInteger::intValue, INTEGER)
-                        .isBetween(1, SINGLE_RUN_EVENT_COUNT));
+                        .asInstanceOf(LONG)
+                        .isBetween(1L, (long) SINGLE_RUN_EVENT_COUNT));
     }
 
     public static class ConfigProfile implements QuarkusTestProfile {

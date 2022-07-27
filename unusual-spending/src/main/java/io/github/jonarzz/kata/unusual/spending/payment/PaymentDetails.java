@@ -2,9 +2,9 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 
-record PaymentDetails(Category category, Cost cost, String description) {
+public record PaymentDetails(Category category, Cost cost, String description) {
 
-    PaymentDetails {
+    public PaymentDetails {
         if (category == null) {
             throw new IllegalArgumentException("Category cannot be null");
         }

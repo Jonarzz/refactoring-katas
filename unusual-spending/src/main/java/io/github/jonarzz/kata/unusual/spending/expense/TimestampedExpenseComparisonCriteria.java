@@ -4,25 +4,23 @@ import io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy;
 import io.github.jonarzz.kata.unusual.spending.payment.AggregationTimespan;
 import io.github.jonarzz.kata.unusual.spending.payment.Category;
 
-import java.math.BigInteger;
-
 public class TimestampedExpenseComparisonCriteria implements
         TimestampedExpenseComparisonCriteriaApi.WithId,
         TimestampedExpenseComparisonCriteriaApi.WithComparedTimespan,
         TimestampedExpenseComparisonCriteriaApi.WithGrouping,
         TimestampedExpenseComparisonCriteriaApi.WithBaseTimespan {
 
-    private BigInteger userId;
+    private long userId;
     private AggregationTimespan comparedTimespan;
     private AggregationPolicy<Category> aggregationPolicy;
     private AggregationTimespan baseTimespan;
     private SpendingThreshold threshold;
 
-    private TimestampedExpenseComparisonCriteria(BigInteger userId) {
+    private TimestampedExpenseComparisonCriteria(long userId) {
         this.userId = userId;
     }
 
-    public static TimestampedExpenseComparisonCriteriaApi.WithId forUserId(BigInteger userId) {
+    public static TimestampedExpenseComparisonCriteriaApi.WithId forUserId(long userId) {
         return new TimestampedExpenseComparisonCriteria(userId);
     }
 
@@ -56,7 +54,7 @@ public class TimestampedExpenseComparisonCriteria implements
                 .formatted(userId, comparedTimespan, aggregationPolicy, baseTimespan, threshold);
     }
 
-    BigInteger userId() {
+    long userId() {
         return userId;
     }
 

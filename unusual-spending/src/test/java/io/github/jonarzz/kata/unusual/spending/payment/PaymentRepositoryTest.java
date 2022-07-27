@@ -2,8 +2,6 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static io.github.jonarzz.kata.unusual.spending.money.Currency.USD;
 import static java.math.BigDecimal.valueOf;
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.TWO;
 import static java.time.Month.JUNE;
 import static java.time.Month.MAY;
 import static java.time.ZoneOffset.UTC;
@@ -14,23 +12,20 @@ import static org.assertj.core.groups.Tuple.tuple;
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
-import java.math.BigInteger;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.ZoneOffset;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 
 @QuarkusTest
-@TestProfile(PaymentRepositoryTest.ConfigProfile.class)
+@TestProfile(IsolatedTestProfile.class)
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
 
@@ -45,7 +40,7 @@ class PaymentRepositoryTest {
 
         @Test
         void firstPayerInMay() {
-            var payerId = ONE;
+            var payerId = 1L;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY), defaultInsertOffset);
 
             var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
@@ -63,7 +58,7 @@ class PaymentRepositoryTest {
 
         @Test
         void secondPayerInMay() {
-            var payerId = TWO;
+            var payerId = 2L;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
             var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
@@ -77,7 +72,7 @@ class PaymentRepositoryTest {
 
         @Test
         void firstPayerInJune() {
-            var payerId = ONE;
+            var payerId = 1L;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE), defaultInsertOffset);
 
             var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
@@ -96,7 +91,7 @@ class PaymentRepositoryTest {
 
         @Test
         void secondPayerInJune() {
-            var payerId = TWO;
+            var payerId = 2L;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
             var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
@@ -117,7 +112,7 @@ class PaymentRepositoryTest {
 
         @Test
         void tryToSave_payerWithGivenIdDoesNotExist() {
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), 10L, null, OffsetDateTime.now());
 
             assertThatThrownBy(() -> repository.save(payment))
                     .hasMessage("Payer with ID 10 does not exist");
@@ -125,7 +120,7 @@ class PaymentRepositoryTest {
 
         @Test
         void save_currencyAndCategoryAlreadyExistInDatabase_withoutProvidingTimestamp() {
-            var payerId = ONE;
+            var payerId = 1L;
             var categoryName = "golf";
             var amount = 33.99;
             var currency = USD;
@@ -135,7 +130,7 @@ class PaymentRepositoryTest {
 
         @Test
         void save_currencyAndCategoryAlreadyExistInDatabase_withProvidedTimestamp() {
-            var payerId = ONE;
+            var payerId = 1L;
             var categoryName = "golf";
             var amount = 33.99;
             var currency = USD;
@@ -146,7 +141,7 @@ class PaymentRepositoryTest {
 
         @Test
         void save_categoryDoesNotExistInDatabase() {
-            var payerId = TWO;
+            var payerId = 1L;
             var categoryName = "subscriptions";
             var amount = 40.99;
             var currency = USD;
@@ -156,7 +151,7 @@ class PaymentRepositoryTest {
 
         @Test
         void save_currencyDoesNotExistInDatabase() {
-            var payerId = ONE;
+            var payerId = 1L;
             var categoryName = "travel";
             var amount = 2500.00;
             var currency = Currency.create("PLN", "pl-PL");
@@ -166,7 +161,7 @@ class PaymentRepositoryTest {
 
         @Test
         void save_tryToSaveSameEventTwice() {
-            var payerId = ONE;
+            var payerId = 1L;
             var categoryName = "golf";
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(12.34, USD));
@@ -185,11 +180,11 @@ class PaymentRepositoryTest {
                     .hasSize(1);
         }
 
-        private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency) {
+        private void saveAndAssert(long payerId, String categoryName, double amount, Currency currency) {
             saveAndAssert(payerId, categoryName, amount, currency, null);
         }
 
-        private void saveAndAssert(BigInteger payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
+        private void saveAndAssert(long payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency));
             var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
@@ -214,24 +209,4 @@ class PaymentRepositoryTest {
 
     }
 
-    public static class ConfigProfile implements QuarkusTestProfile {
-
-        @Override
-        public Map<String, String> getConfigOverrides() {
-            return Map.of(
-                    // disable Docker testcontainers
-                    "quarkus.devservices.enabled", "false",
-                    // disable PaymentRegistrationListener startup
-                    "quarkus.arc.test.disable-application-lifecycle-observers", "true",
-                    "quarkus.liquibase.change-log", "test-changeLog.yaml",
-                    "quarkus.datasource.jdbc.url", "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
-                    "quarkus.datasource.username", "user",
-                    "quarkus.datasource.password", "password",
-                    // required JMS-related properties
-                    "jms.payment.destination", "dummy",
-                    "jms.payment.client-id", "dummy",
-                    "quarkus.artemis.url", "dummy"
-            );
-        }
-    }
 }
