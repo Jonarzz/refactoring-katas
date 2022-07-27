@@ -25,31 +25,27 @@ class PaymentRepository {
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(Long payerId, OffsetDateTime from, OffsetDateTime to) {
-        var sqlBuilder = new StringBuilder("SELECT p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time ")
-                .append("FROM payment p ")
-                .append("JOIN currency c ON p.currency = c.alpha_code ")
-                .append("WHERE payer_id = ")
-                .append(payerId);
+        var sqlTemplate = "SELECT p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time "
+                         + "FROM payment p "
+                         + "JOIN currency c ON p.currency = c.alpha_code "
+                         + "WHERE p.payer_id = ?";
         if (from != null) {
-            sqlBuilder.append(" AND time >= TIMESTAMP '")
-                      .append(toStringAtSystemOffset(from))
-                      .append("'");
+            sqlTemplate += " AND p.time >= ?";
         }
         if (to != null) {
-            sqlBuilder.append(" AND time <= TIMESTAMP '")
-                      .append(toStringAtSystemOffset(to))
-                      .append("'");
+            sqlTemplate += " AND p.time <= ?";
         }
-        return queryingAdapter.fetch(sqlBuilder.toString(), new PaymentDetailsMapper());
+        return queryingAdapter.fetch(new PaymentDetailsMapper(),
+                                     sqlTemplate, payerId, toStringAtSystemOffset(from), toStringAtSystemOffset(to));
     }
 
     boolean save(PaymentRegisteredEvent paymentEvent) {
         var payerId = paymentEvent.payerId();
-        if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = " + payerId)) {
+        if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = ?", payerId)) {
             throw new IllegalStateException("Payer with ID " + payerId + " does not exist");
         }
         var eventId = paymentEvent.id();
-        if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = '" + eventId + "'")) {
+        if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = ?", eventId)) {
             return false;
         }
         var details = paymentEvent.details();
@@ -60,40 +56,35 @@ class PaymentRepository {
         createCategoryIfDoesNotExist(category);
         var time = toStringAtSystemOffset(Optional.ofNullable(details.timestamp())
                                                   .orElseGet(OffsetDateTime::now));
-        // TODO pass sql and parameters and use in PreparedStatement in the adapters (whole class)
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_id, amount, currency, category, time, description) "
-                                + "VALUES ('%s', %s, %s, '%s', '%s', '%s', %s)"
-                                        .formatted(eventId, payerId, cost.getAmount(), currency.alphaCode(), category, time,
-                                                   Optional.ofNullable(details.description())
-                                                           .map(description -> "'" + description + "'")
-                                                           .orElse(null)));
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                eventId, payerId, cost.getAmount(), currency.alphaCode(), category, time, details.description());
         return true;
     }
 
     private void createCurrencyIfDoesNotExist(Currency currency) {
         var currencyCode = currency.alphaCode();
-        var currencyQuery = "SELECT 1 FROM currency WHERE alpha_code = '%s'".formatted(currencyCode);
-        if (queryingAdapter.atLeastOneExists(currencyQuery)) {
+        if (queryingAdapter.atLeastOneExists("SELECT 1 FROM currency WHERE alpha_code = ?", currencyCode)) {
             return;
         }
-        modifyingAdapter.modify("INSERT INTO currency (alpha_code, language_tag) "
-                                + "VALUES ('%s', '%s')"
-                                        .formatted(currencyCode, currency.languageTag()));
+        modifyingAdapter.modify("INSERT INTO currency (alpha_code, language_tag) VALUES (?, ?)",
+                                currencyCode, currency.languageTag());
     }
 
     private void createCategoryIfDoesNotExist(Category category) {
-        var categoryQuery = "SELECT 1 FROM category WHERE name = '%s'".formatted(category);
-        if (queryingAdapter.atLeastOneExists(categoryQuery)) {
+        if (queryingAdapter.atLeastOneExists("SELECT 1 FROM category WHERE name = ?", category)) {
             return;
         }
-        modifyingAdapter.modify("INSERT INTO category (name) "
-                                + "VALUES ('%s')"
-                                        .formatted(category));
+        modifyingAdapter.modify("INSERT INTO category (name) VALUES (?)",
+                                category);
     }
 
-    private String toStringAtSystemOffset(OffsetDateTime from) {
-        return from.withOffsetSameInstant(UTC)
+    private String toStringAtSystemOffset(OffsetDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        return dateTime.withOffsetSameInstant(UTC)
                    .format(ISO_LOCAL_DATE_TIME);
     }
 }

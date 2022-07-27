@@ -16,23 +16,29 @@ public class DatabaseFetchingAdapter {
         this.dataSource = dataSource;
     }
 
-    public <T> List<T> fetch(String sql, ResultMapper<T> resultMapper) {
-        return handleQuery(sql, resultSet -> {
+    public <T> List<T> fetch(ResultMapper<T> resultMapper, String sqlTemplate, Object... params) {
+        return handleQuery(resultSet -> {
             List<T> results = new ArrayList<>();
             while (resultSet.next()) {
                 results.add(resultMapper.map(resultSet));
             }
             return results;
-        });
+        }, sqlTemplate, params);
     }
 
-    public boolean atLeastOneExists(String sql) {
-        return handleQuery(sql, ResultSet::next);
+    public boolean atLeastOneExists(String sql, Object... params) {
+        return handleQuery(ResultSet::next, sql, params);
     }
 
-    private <T> T handleQuery(String sql, ResultSetMapper<T> resultSetMapper) {
+    private <T> T handleQuery(ResultSetMapper<T> resultSetMapper, String sql, Object... params) {
         try (var conn = dataSource.getConnection();
              var statement = conn.prepareStatement(sql)) {
+            var templateIndex = 1;
+            for (var param : params) {
+                if (param != null) {
+                    statement.setString(templateIndex++, param.toString());
+                }
+            }
             return resultSetMapper.apply(statement.executeQuery());
         } catch (SQLException e) {
             // TODO improve exception handling in the whole kata
