@@ -5,7 +5,3 @@ resources:
   - database.yaml
   - jms-broker.yml
   - unusual-spending.yml
-configMapGenerator:
-  - name: payment-liquibase-config
-    files:
-      - liquibase/create-payment-tables.yaml

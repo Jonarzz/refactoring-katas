@@ -1,5 +1,12 @@
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-database-config
+data:
+  URL: jdbc:h2:tcp://database:1521/payment
+---
+apiVersion: v1
 kind: Service
 metadata:
   labels:
@@ -48,7 +55,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: QUARKUS_LOG_LEVEL
-              value: DEBUG
+              value: INFO
             # JMS
             - name: JMS_PAYMENT_DESTINATION
               value: payment/register/v1
@@ -69,48 +76,18 @@ spec:
                   name: payment-secret
                   key: jms-password
             # database
-            - name: DATABASE_PAYMENT_URL
-              value: jdbc:h2:tcp://database:1521/payment
-            - name: DATABASE_PAYMENT_USERNAME
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-database-config
+                  key: URL
+            - name: QUARKUS_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: payment-secret
                   key: database-username
-            - name: DATABASE_PAYMENT_PASSWORD
+            - name: QUARKUS_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: payment-secret
                   key: database-password
-      initContainers: # TODO run as part of Quarkus startup
-        - name: liquibase
-          image: liquibase/liquibase:4.12
-          imagePullPolicy: IfNotPresent
-          command:
-            - liquibase
-            - update
-          args:
-            - '--url=jdbc:h2:tcp://database:1521/payment'
-            - '--username=$(DATABASE_USERNAME)'
-            - '--password=$(DATABASE_PASSWORD)'
-            - '--changelog-file=create-payment-tables.yaml'
-            - '--classpath=/liquibase/custom-config'
-            - '--log-level=INFO'
-          env:
-            # H2 username and password are set on first connection to the payment database
-            - name: DATABASE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: payment-secret
-                  key: database-username
-            - name: DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: payment-secret
-                  key: database-password
-          volumeMounts:
-            - name: payment-liquibase-changelog
-              mountPath: /liquibase/custom-config
-      volumes:
-        - name: payment-liquibase-changelog
-          configMap:
-            name: payment-liquibase-config

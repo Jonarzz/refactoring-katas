@@ -90,7 +90,8 @@ which was also a way to spend less time on the configuration part.
 
     kubectl apply -k src/main/resources/kubernetes
 
-(Kustomization is used to dynamically generate Liquibase-related ConfigMaps)
+(it's best to start up the cluster with 0 replicas of `unusual-spending` deployment
+and increase the number later, when database and JMS broker pods are up)
 
 Additional useful command examples:
 - `kubectl get svc` (also `deploy`, `pod` etc.) - get state of running services (deployments, pods)

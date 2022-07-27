@@ -14,21 +14,10 @@
     <url>https://kata-log.rocks/unusual-spending-kata</url>
 
     <properties>
-        <!-- quarkus settings -->
         <quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
-        <!-- other settings -->
-        <liquibase-properties.file-path>${project.basedir}/src/test/resources/liquibase.properties</liquibase-properties.file-path>
-        <!-- versions -->
-        <h2.version>2.1.210</h2.version>
-        <liquibase.version>4.11.0</liquibase.version>
-        <snakeyaml.version>1.30</snakeyaml.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jackson</artifactId>
@@ -46,9 +35,17 @@
             <artifactId>quarkus-container-image-jib</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>${h2.version}</version>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-liquibase</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-h2</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -69,18 +66,6 @@
             <groupId>org.jboss.logmanager</groupId>
             <artifactId>log4j2-jboss-logmanager</artifactId>
             <version>1.1.1.Final</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-            <version>${liquibase.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>${snakeyaml.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -106,12 +91,6 @@
             <testResource>
                 <directory>${project.basedir}/src/test/resources</directory>
             </testResource>
-            <testResource>
-                <directory>${project.basedir}/src/main/resources/kubernetes/liquibase</directory>
-                <includes>
-                    <include>create-payment-tables.yaml</include>
-                </includes>
-            </testResource>
         </testResources>
         <plugins>
             <plugin>
@@ -127,20 +106,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-maven-plugin</artifactId>
-                <version>${liquibase.version}</version>
-                <configuration>
-                    <propertyFile>${liquibase-properties.file-path}</propertyFile>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <systemPropertiesFile>${liquibase-properties.file-path}</systemPropertiesFile>
-                </configuration>
             </plugin>
         </plugins>
     </build>

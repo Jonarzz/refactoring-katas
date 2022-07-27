@@ -1,5 +1,5 @@
 databaseChangeLog:
   - include:
-      file: create-payment-tables.yaml
+      file: db/changeLog.yaml
   - include:
       file: data/insert.yaml

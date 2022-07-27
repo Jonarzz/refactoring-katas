@@ -6,8 +6,6 @@ import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseFetchingAdapter;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseModifyingAdapter;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.math.BigInteger;
@@ -18,17 +16,13 @@ import java.util.Optional;
 @ApplicationScoped
 class PaymentRepository {
 
-    private static final Logger LOG = Logger.getLogger(PaymentRepository.class);
-
     private DatabaseFetchingAdapter queryingAdapter;
     private DatabaseModifyingAdapter modifyingAdapter;
 
-    PaymentRepository(@ConfigProperty(name = "database.payment.url") String url,
-                      @ConfigProperty(name = "database.payment.username") String user,
-                      @ConfigProperty(name = "database.payment.password") String password) {
-        LOG.infof("Creating database adapters for URL '%s' and user '%s", url, user);
-        modifyingAdapter = new DatabaseModifyingAdapter(url, user, password);
-        queryingAdapter = new DatabaseFetchingAdapter(url, user, password);
+    PaymentRepository(DatabaseFetchingAdapter queryingAdapter,
+                      DatabaseModifyingAdapter modifyingAdapter) {
+        this.queryingAdapter = queryingAdapter;
+        this.modifyingAdapter = modifyingAdapter;
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(BigInteger payerId, OffsetDateTime from, OffsetDateTime to) {

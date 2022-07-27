@@ -1,14 +1,19 @@
 package io.github.jonarzz.kata.unusual.spending.technical.repository;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseFetchingAdapter extends DatabaseAdapter {
+@ApplicationScoped
+public class DatabaseFetchingAdapter {
 
-    public DatabaseFetchingAdapter(String url, String username, String password) {
-        super(url, username, password);
+    private final DataSource dataSource;
+
+    public DatabaseFetchingAdapter(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public <T> List<T> fetch(String sql, ResultMapper<T> resultMapper) {
@@ -26,7 +31,7 @@ public class DatabaseFetchingAdapter extends DatabaseAdapter {
     }
 
     private <T> T handleQuery(String sql, ResultSetMapper<T> resultSetMapper) {
-        try (var conn = getConnection();
+        try (var conn = dataSource.getConnection();
              var statement = conn.prepareStatement(sql)) {
             return resultSetMapper.apply(statement.executeQuery());
         } catch (SQLException e) {

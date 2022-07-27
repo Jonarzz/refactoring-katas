@@ -13,36 +13,42 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
-import io.github.jonarzz.kata.unusual.spending.test.LiquibaseExtension;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
+import javax.inject.Inject;
 import java.math.BigInteger;
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 
+@QuarkusTest
+@TestProfile(PaymentRepositoryTest.ConfigProfile.class)
 @SuppressWarnings("UnnecessaryLocalVariable")
 class PaymentRepositoryTest {
 
-    PaymentRepository repository = new PaymentRepository(LiquibaseExtension.URL,
-                                                         LiquibaseExtension.USERNAME,
-                                                         LiquibaseExtension.PASSWORD);
+    @Inject
+    PaymentRepository repository;
 
     @Nested
-    @ExtendWith(LiquibaseExtension.class)
-    class GetUserPaymentsBetween {
+    class GetPayerPaymentsBetween {
+
+        private final ZoneOffset defaultInsertOffset = OffsetDateTime.now()
+                                                                     .getOffset();
 
         @Test
-        void firstUserInMay() {
-            var userId = ONE;
-            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
+        void firstPayerInMay() {
+            var payerId = ONE;
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY), defaultInsertOffset);
 
-            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -56,11 +62,11 @@ class PaymentRepositoryTest {
         }
 
         @Test
-        void secondUserInMay() {
-            var userId = TWO;
+        void secondPayerInMay() {
+            var payerId = TWO;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
-            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -70,11 +76,11 @@ class PaymentRepositoryTest {
         }
 
         @Test
-        void firstUserInJune() {
-            var userId = ONE;
-            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
+        void firstPayerInJune() {
+            var payerId = ONE;
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE), defaultInsertOffset);
 
-            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -89,11 +95,11 @@ class PaymentRepositoryTest {
         }
 
         @Test
-        void secondUserInJune() {
-            var userId = TWO;
+        void secondPayerInJune() {
+            var payerId = TWO;
             var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
-            var results = repository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -105,13 +111,12 @@ class PaymentRepositoryTest {
     }
 
     @Nested
-    @ExtendWith(LiquibaseExtension.class)
     class SavePayment {
 
-        // in case of any errors GetUserPaymentsBetween tests should be fixed first
+        // in case of any errors GetPayerPaymentsBetween tests should be fixed first
 
         @Test
-        void tryToSave_userWithGivenIdDoesNotExist() {
+        void tryToSave_payerWithGivenIdDoesNotExist() {
             var payment = new PaymentRegisteredEvent(UUID.randomUUID(), BigInteger.TEN, null, OffsetDateTime.now());
 
             assertThatThrownBy(() -> repository.save(payment))
@@ -209,24 +214,24 @@ class PaymentRepositoryTest {
 
     }
 
-    @Nested
-    class DatabaseExceptionHandling {
+    public static class ConfigProfile implements QuarkusTestProfile {
 
-        PaymentRepository invalidRepository = new PaymentRepository(
-                "invalid url",
-                "invalid user",
-                "invalid password"
-        );
-
-        @Test
-        void exceptionThrownWhenNoSuitableDriverExistsForGivenUrl() {
-            var payerId = ONE;
-            var timestamp = OffsetDateTime.now();
-
-            assertThatThrownBy(() -> invalidRepository.getPaymentDetailsBetween(payerId, timestamp, timestamp))
-                    .hasCauseInstanceOf(SQLException.class);
+        @Override
+        public Map<String, String> getConfigOverrides() {
+            return Map.of(
+                    // disable Docker testcontainers
+                    "quarkus.devservices.enabled", "false",
+                    // disable PaymentRegistrationListener startup
+                    "quarkus.arc.test.disable-application-lifecycle-observers", "true",
+                    "quarkus.liquibase.change-log", "test-changeLog.yaml",
+                    "quarkus.datasource.jdbc.url", "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+                    "quarkus.datasource.username", "user",
+                    "quarkus.datasource.password", "password",
+                    // required JMS-related properties
+                    "jms.payment.destination", "dummy",
+                    "jms.payment.client-id", "dummy",
+                    "quarkus.artemis.url", "dummy"
+            );
         }
-
     }
-
 }

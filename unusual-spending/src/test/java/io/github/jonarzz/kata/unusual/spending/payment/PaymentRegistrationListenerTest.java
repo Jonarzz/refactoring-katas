@@ -156,7 +156,8 @@ class PaymentRegistrationListenerTest {
                     "jms.payment.destination", REGISTER_PAYMENT_TOPIC_NAME,
                     "jms.payment.client-id", "test-client",
                     "jms.payment.connection-retry.interval-seconds", "3",
-                    "quarkus.log.level", "ERROR"
+                    "quarkus.log.category.\"org.apache.activemq\".level", "ERROR",
+                    "quarkus.liquibase.migrate-at-start", "false"
             );
         }
     }
