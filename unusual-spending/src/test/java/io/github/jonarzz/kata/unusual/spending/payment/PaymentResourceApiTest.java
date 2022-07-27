@@ -76,6 +76,7 @@ class PaymentResourceApiTest {
                           },
                           "query": "query GetUserPaymentsBetweenDates($userId: BigInteger!, $from: DateTime, $to: DateTime) {
                             userPayments (userId: $userId, from: $from, to: $to) {
+                              timestamp
                               description
                               category {
                                 name
@@ -91,9 +92,9 @@ class PaymentResourceApiTest {
                         }""");
 
         assertPayments(response)
-                .extracting("cost.amount", "cost.currency.alphaCode", "category.name", "description")
+                .extracting("cost.amount", "cost.currency.alphaCode", "category.name", "description", "timestamp")
                 .containsExactly(
-                        tuple(11.99f, "USD", "groceries", "Other test description")
+                        tuple(11.99f, "USD", "groceries", "Other test description", "2022-05-04T07:11:33Z")
                 );
     }
 

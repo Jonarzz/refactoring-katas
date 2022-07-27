@@ -25,6 +25,7 @@ databaseChangeLog:
             file: payer.csv
             relativeToChangelogFile: true
         - loadData:
+            # timestamps loaded by Liquibase with system zone offset
             tableName: payment
             file: payment.csv
             relativeToChangelogFile: true

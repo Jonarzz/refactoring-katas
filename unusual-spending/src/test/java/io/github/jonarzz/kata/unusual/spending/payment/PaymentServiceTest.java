@@ -127,7 +127,7 @@ class PaymentServiceTest {
 
         @Test
         void emptyEvent() {
-            var event = new PaymentRegisteredEvent(null, null, null, null);
+            var event = new PaymentRegisteredEvent(null, null, null);
 
             ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
 
@@ -147,7 +147,7 @@ class PaymentServiceTest {
                     Category.named("groceries"),
                     Cost.usd(11.05)
             );
-            var event = new PaymentRegisteredEvent(id, negativePayerId, details, null);
+            var event = new PaymentRegisteredEvent(id, negativePayerId, details);
 
             ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
 
@@ -165,7 +165,7 @@ class PaymentServiceTest {
                     Category.named("travel"),
                     Cost.usd(12.35)
             );
-            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails, null);
+            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails);
 
             service.save(event);
 
@@ -179,9 +179,10 @@ class PaymentServiceTest {
             var paymentDetails = new PaymentDetails(
                     Category.named("travel"),
                     Cost.usd(12.35),
+                    timestamp,
                     "Payment description"
             );
-            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails, timestamp);
+            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails);
 
             service.save(event);
 

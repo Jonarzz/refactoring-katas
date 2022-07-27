@@ -7,6 +7,7 @@ import static java.time.Month.MAY;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.OFFSET_DATE_TIME;
 import static org.assertj.core.groups.Tuple.tuple;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
@@ -112,7 +113,7 @@ class PaymentRepositoryTest {
 
         @Test
         void tryToSave_payerWithGivenIdDoesNotExist() {
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), 10L, null, OffsetDateTime.now());
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), 10L, null);
 
             assertThatThrownBy(() -> repository.save(payment))
                     .hasMessage("Payer with ID 10 does not exist");
@@ -165,7 +166,7 @@ class PaymentRepositoryTest {
             var categoryName = "golf";
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(12.34, USD));
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, null);
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details);
             var timeBefore = OffsetDateTime.now();
 
             assertThat(repository.save(payment))
@@ -186,9 +187,10 @@ class PaymentRepositoryTest {
 
         private void saveAndAssert(long payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
             var details = new PaymentDetails(Category.named(categoryName),
-                                             Cost.create(amount, currency));
+                                             Cost.create(amount, currency),
+                                             time);
             var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details, time);
+            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details);
 
             repository.save(payment);
 
@@ -199,6 +201,10 @@ class PaymentRepositoryTest {
                     .containsExactly(
                             tuple(categoryName, valueOf(amount), currency)
                     );
+            assertThat(saved)
+                    .extracting(PaymentDetails::timestamp)
+                    .singleElement(OFFSET_DATE_TIME)
+                    .isBetween(timeBefore, timeAfter);
         }
 
         private OffsetDateTime shiftedOrNow(OffsetDateTime time, UnaryOperator<OffsetDateTime> shifter) {

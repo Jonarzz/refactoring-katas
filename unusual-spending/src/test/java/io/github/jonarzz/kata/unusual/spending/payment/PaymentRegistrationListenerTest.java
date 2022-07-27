@@ -106,8 +106,8 @@ class PaymentRegistrationListenerTest {
                 {
                   "id": "%s",
                   "payerId": "%s",
-                  "timestamp": "%s",
                   "details": {
+                    "timestamp": "%s",
                     "category": "%s",
                     "cost": {
                        "amount": %s,
@@ -129,10 +129,10 @@ class PaymentRegistrationListenerTest {
                 .hasSize(SINGLE_RUN_EVENT_COUNT)
                 .allSatisfy(paymentEvent -> assertThat(paymentEvent)
                         .returns(MessageData.ID, event -> event.id().toString())
-                        .returns(MessageData.TIMESTAMP, PaymentRegisteredEvent::timestamp)
                         .satisfies(event -> assertThat(event.details())
                                 .returns(MessageData.CATEGORY, details -> details.category()
                                                                                  .toString())
+                                .returns(MessageData.TIMESTAMP, PaymentDetails::timestamp)
                                 .extracting(PaymentDetails::cost)
                                 .returns(MessageData.AMOUNT, Cost::getAmount)
                                 .extracting(Cost::getCurrency)

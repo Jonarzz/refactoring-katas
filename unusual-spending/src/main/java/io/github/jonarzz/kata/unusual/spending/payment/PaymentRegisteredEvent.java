@@ -2,7 +2,6 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 record PaymentRegisteredEvent(
@@ -12,8 +11,7 @@ record PaymentRegisteredEvent(
         @Positive(message = "ID should be a positive integer")
         Long payerId,
         @NotNull(message = "Payment details cannot be null")
-        PaymentDetails details,
-        OffsetDateTime timestamp // TODO move to details
+        PaymentDetails details
 ) {
 
 }

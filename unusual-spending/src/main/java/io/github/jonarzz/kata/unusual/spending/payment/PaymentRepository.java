@@ -1,7 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
 import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
 import io.github.jonarzz.kata.unusual.spending.technical.repository.DatabaseFetchingAdapter;
@@ -25,19 +25,19 @@ class PaymentRepository {
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(Long payerId, OffsetDateTime from, OffsetDateTime to) {
-        var sqlBuilder = new StringBuilder("SELECT p.category, p.amount, c.alpha_code, c.language_tag, p.description ")
+        var sqlBuilder = new StringBuilder("SELECT p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time ")
                 .append("FROM payment p ")
                 .append("JOIN currency c ON p.currency = c.alpha_code ")
                 .append("WHERE payer_id = ")
                 .append(payerId);
         if (from != null) {
             sqlBuilder.append(" AND time >= TIMESTAMP '")
-                      .append(toStringAtUtc(from))
+                      .append(toStringAtSystemOffset(from))
                       .append("'");
         }
         if (to != null) {
             sqlBuilder.append(" AND time <= TIMESTAMP '")
-                      .append(toStringAtUtc(to))
+                      .append(toStringAtSystemOffset(to))
                       .append("'");
         }
         return queryingAdapter.fetch(sqlBuilder.toString(), new PaymentDetailsMapper());
@@ -58,8 +58,8 @@ class PaymentRepository {
         createCurrencyIfDoesNotExist(currency);
         var category = details.category();
         createCategoryIfDoesNotExist(category);
-        var time = toStringAtUtc(Optional.ofNullable(paymentEvent.timestamp())
-                                          .orElseGet(OffsetDateTime::now));
+        var time = toStringAtSystemOffset(Optional.ofNullable(details.timestamp())
+                                                  .orElseGet(OffsetDateTime::now));
         // TODO pass sql and parameters and use in PreparedStatement in the adapters (whole class)
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_id, amount, currency, category, time, description) "
@@ -92,8 +92,8 @@ class PaymentRepository {
                                         .formatted(category));
     }
 
-    private String toStringAtUtc(OffsetDateTime from) {
-        return from.atZoneSameInstant(UTC)
-                   .format(ISO_OFFSET_DATE_TIME);
+    private String toStringAtSystemOffset(OffsetDateTime from) {
+        return from.withOffsetSameInstant(UTC)
+                   .format(ISO_LOCAL_DATE_TIME);
     }
 }

@@ -127,7 +127,6 @@ broker/bin/artemis producer \
 --message-count 1 \
 --message '{
 "id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
-"timestamp": "2022-07-24T12:13:57+02",
 "payerId": 1,
 "details": {
   "category": "groceries",
@@ -146,9 +145,9 @@ broker/bin/artemis producer \
 --message-count 1 \
 --message '{
 "id": "ba1d8c9f-c7fb-486d-9c44-98008b30117c",
-"timestamp": "2022-07-27T16:13:21+02",
 "payerId": 1,
 "details": {
+  "timestamp": "2022-07-27T16:13:21+02",
   "category": "travel",
   "cost": {
     "amount": 987.75,
