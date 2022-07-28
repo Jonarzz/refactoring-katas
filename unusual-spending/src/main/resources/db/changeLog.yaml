@@ -28,16 +28,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
         - createTable:
-            tableName: payer
-            columns:
-              - column:
-                  name: id
-                  type: int
-                  autoIncrement: true
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-        - createTable:
             tableName: payment
             columns:
               - column:
@@ -71,9 +61,6 @@ databaseChangeLog:
                   name: payer_id
                   type: int
                   constraints:
-                    foreignKeyName: fk_payment_payer
-                    referencedTableName: payer
-                    referencedColumnNames: id
                     nullable: false
               - column:
                   name: description

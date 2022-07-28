@@ -6,7 +6,6 @@ import static java.time.Month.JUNE;
 import static java.time.Month.MAY;
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.OFFSET_DATE_TIME;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -111,61 +110,52 @@ class PaymentRepositoryTest {
 
         // in case of any errors GetPayerPaymentsBetween tests should be fixed first
 
-        @Test
-        void tryToSave_payerWithGivenIdDoesNotExist() {
-            var payment = new PaymentRegisteredEvent(UUID.randomUUID(), 10L, null);
-
-            assertThatThrownBy(() -> repository.save(payment))
-                    .hasMessage("Payer with ID 10 does not exist");
-        }
+        private long payerId = 100;
 
         @Test
         void save_currencyAndCategoryAlreadyExistInDatabase_withoutProvidingTimestamp() {
-            var payerId = 1L;
             var categoryName = "golf";
             var amount = 33.99;
             var currency = USD;
 
-            saveAndAssert(payerId, categoryName, amount, currency);
+            saveAndAssert(categoryName, amount, currency);
         }
 
         @Test
         void save_currencyAndCategoryAlreadyExistInDatabase_withProvidedTimestamp() {
-            var payerId = 1L;
             var categoryName = "golf";
             var amount = 33.99;
             var currency = USD;
             var timestamp = OffsetDateTime.of(2022, 7, 1, 11, 31, 43, 0, UTC);
             
-            saveAndAssert(payerId, categoryName, amount, currency, timestamp);
+            saveAndAssert(categoryName, amount, currency, timestamp);
         }
 
         @Test
         void save_categoryDoesNotExistInDatabase() {
-            var payerId = 1L;
             var categoryName = "subscriptions";
             var amount = 40.99;
             var currency = USD;
 
-            saveAndAssert(payerId, categoryName, amount, currency);
+            saveAndAssert(categoryName, amount, currency);
         }
 
         @Test
         void save_currencyDoesNotExistInDatabase() {
-            var payerId = 1L;
             var categoryName = "travel";
             var amount = 2500.00;
             var currency = Currency.create("PLN", "pl-PL");
 
-            saveAndAssert(payerId, categoryName, amount, currency);
+            saveAndAssert(categoryName, amount, currency);
         }
 
         @Test
         void save_tryToSaveSameEventTwice() {
-            var payerId = 1L;
             var categoryName = "golf";
+            var amount = 12.34;
+            var currency = USD;
             var details = new PaymentDetails(Category.named(categoryName),
-                                             Cost.create(12.34, USD));
+                                             Cost.create(amount, currency));
             var payment = new PaymentRegisteredEvent(UUID.randomUUID(), payerId, details);
             var timeBefore = OffsetDateTime.now();
 
@@ -178,14 +168,17 @@ class PaymentRepositoryTest {
 
             var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, OffsetDateTime.now());
             assertThat(saved)
-                    .hasSize(1);
+                    .singleElement()
+                    .returns(categoryName, result -> result.category().getName())
+                    .returns(amount, result -> result.cost().getAmount().doubleValue())
+                    .returns(currency, result -> result.cost().getCurrency());
         }
 
-        private void saveAndAssert(long payerId, String categoryName, double amount, Currency currency) {
-            saveAndAssert(payerId, categoryName, amount, currency, null);
+        private void saveAndAssert(String categoryName, double amount, Currency currency) {
+            saveAndAssert(categoryName, amount, currency, null);
         }
 
-        private void saveAndAssert(long payerId, String categoryName, double amount, Currency currency, OffsetDateTime time) {
+        private void saveAndAssert(String categoryName, double amount, Currency currency, OffsetDateTime time) {
             var details = new PaymentDetails(Category.named(categoryName),
                                              Cost.create(amount, currency),
                                              time);

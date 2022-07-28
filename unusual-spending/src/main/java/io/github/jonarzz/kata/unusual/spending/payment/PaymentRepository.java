@@ -41,9 +41,6 @@ class PaymentRepository {
 
     boolean save(PaymentRegisteredEvent paymentEvent) {
         var payerId = paymentEvent.payerId();
-        if (!queryingAdapter.atLeastOneExists("SELECT 1 FROM payer WHERE id = ?", payerId)) {
-            throw new IllegalStateException("Payer with ID " + payerId + " does not exist");
-        }
         var eventId = paymentEvent.id();
         if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = ?", eventId)) {
             return false;
