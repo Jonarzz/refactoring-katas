@@ -76,21 +76,21 @@ which was also a way to spend less time on the configuration part.
 
     mvn clean package -Dquarkus.container-image.build=true
 
-(includes creation of a Jib image)
+(includes creation of a Jib images)
 
-3. To load the image into the local Minikube instance use:
+3. To load the images into the local Minikube instance use:
 
 
-    minikube image load io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT
+    minikube image load io.github.jonarzz/payment-service:1.0.0-SNAPSHOT
 
 (image will not be reloaded if a pod in a deployment using the image is running - see: `kubectl scale` command below)
 
 3. (Re)load Kubernetes configuration:
 
 
-    kubectl apply -k src/main/resources/kubernetes
+    kubectl apply -k k8s
 
-(it's best to start up the cluster with 0 replicas of `unusual-spending` deployment
+(it's best to start up the cluster with 0 replicas of the services deployment
 and increase the number later, when database and JMS broker pods are up)
 
 4. Enable `ingress` addon and open a tunnel in Minikube:
@@ -105,17 +105,17 @@ GraphQL console is available at: http://localhost/payment/q/graphql-ui
 
 Additional useful command examples:
 - `kubectl get svc` (also `deploy`, `pod` etc.) - get state of running services (deployments, pods)
-- `kubectl scale --replicas=0 deployment/unusual-spending` - stop all running pods in given deployment
-- `kubectl scale --replicas=1 deployment/unusual-spending` - start pods in given deployment (with no replication) 
-- `kubectl exec -it deploy/unusual-spending -- /bin/bash` - start executing commands inside given deployment;
+- `kubectl scale --replicas=0 deployment/payment-service` - stop all running pods in given deployment
+- `kubectl scale --replicas=1 deployment/payment-service` - start pods in given deployment (with no replication) 
+- `kubectl exec -it deploy/payment-service -- /bin/bash` - start executing commands inside given deployment;
 the command after `--` could be anything, e.g. it could be a `curl` command verifying if other deployment's service 
 is accessible from given deployment - in case of a single command the session quits after executing the command
-- `kubectl port-forward service/unusual-spending 8080:80` - run a tunnel forwarding the localhost port `8080` to the `80` port 
+- `kubectl port-forward service/payment-service 8080:80` - run a tunnel forwarding the localhost port `8080` to the `80` port 
 for given service 
 - `kubectl explain <thing>` (e.g. `kubectl explain deployments.spec.replicas`) - display documentation of the given "thing"
 - `kubectl logs <pod_name> -c <init_container_name> -f` - display logs of init container for given pod (following new lines)
 - `minikube image ls --format table` - list Minikube images - by verifying image ID it's possible to check if the image was successfully reloaded 
-- `minikube image rm io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT` - remove the image from Minikube images
+- `minikube image rm io.github.jonarzz/payment-service:1.0.0-SNAPSHOT` - remove the image from Minikube images
 - `minikube dashboard` - run a web-accessible dashboard showing the state of the cluster
 
 See [kubectl](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands) 

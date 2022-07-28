@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - secret-example.yml
+  - database.yaml
+  - jms-broker.yml
+  - service/payment-service.yml
+  - ingress-for-frontend.yml
