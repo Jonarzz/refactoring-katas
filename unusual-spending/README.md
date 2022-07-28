@@ -78,7 +78,7 @@ which was also a way to spend less time on the configuration part.
 
 (includes creation of a Jib image)
 
-2. To load the image into the local Minikube instance use:
+3. To load the image into the local Minikube instance use:
 
 
     minikube image load io.github.jonarzz/unusual-spending:1.0.0-SNAPSHOT
@@ -92,6 +92,16 @@ which was also a way to spend less time on the configuration part.
 
 (it's best to start up the cluster with 0 replicas of `unusual-spending` deployment
 and increase the number later, when database and JMS broker pods are up)
+
+4. Enable `ingress` addon and open a tunnel in Minikube:
+
+
+    minikube addons enable ingress
+    minikube tunnel
+
+GraphQL console is available at: http://localhost/payment/q/graphql-ui
+
+---
 
 Additional useful command examples:
 - `kubectl get svc` (also `deploy`, `pod` etc.) - get state of running services (deployments, pods)

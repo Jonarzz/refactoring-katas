@@ -4,4 +4,5 @@ resources:
   - secret-example.yml
   - database.yaml
   - jms-broker.yml
-  - unusual-spending.yml
+  - payment-service.yml
+  - ingress-for-frontend.yml
