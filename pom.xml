@@ -20,7 +20,6 @@
         <module>manhattan-distance</module>
         <module>the-lift</module>
         <module>social-network</module>
-        <module>project-analyzer</module>
     </modules>
 
     <properties>
@@ -31,7 +30,7 @@
         <jmh.version>1.34</jmh.version>
         <junit.jupiter.version>5.8.2</junit.jupiter.version>
         <cucumber.version>7.2.3</cucumber.version>
-        <quarkus.version>2.10.1.Final</quarkus.version>
+        <quarkus.version>2.11.0.Final</quarkus.version>
         <quarkus.artemis.version>1.2.0</quarkus.artemis.version>
     </properties>
 
@@ -85,19 +84,8 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <configuration>
-                            <excludes>
-                                <!-- TODO coverage of @QuarkusTest classes -->
-                                <exclude>**/PaymentRegistrationListener.*</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonarsource.scanner.maven</groupId>
-                <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.9.1.2184</version>
             </plugin>
         </plugins>
     </build>
@@ -105,7 +93,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.quarkus.platform</groupId>
+                <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-bom</artifactId>
                 <version>${quarkus.version}</version>
                 <type>pom</type>

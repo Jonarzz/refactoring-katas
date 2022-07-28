@@ -16,9 +16,13 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
 import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import javax.inject.Inject;
 import java.math.BigDecimal;
@@ -52,6 +56,11 @@ class PaymentRegistrationListenerTest {
         testJmsServer.cleanUpPersistentQueues();
     }
 
+    @AfterAll
+    static void afterAll() throws Exception {
+        TestJmsServer.stop();
+    }
+
     @RepeatedTest(5)
     void currencyAsStringValue() {
         var currencyJsonValue = "\"" + MessageData.CURRENCY + "\"";
@@ -77,14 +86,68 @@ class PaymentRegistrationListenerTest {
         assertProcessedEvents();
     }
 
-    @RepeatedTest(5)
-    void invalidMessage() {
-        var message = "{{test}";
+    @ParameterizedTest(name = "message = {0}")
+    @ValueSource(strings = {
+            """
+                    {
+                      "details": {}
+                    }""",
+            """
+                    {
+                      "details": {
+                        "category": "test"
+                      }
+                    }""",
+            """
+                    {
+                      "details": {
+                        "cost": {}
+                      }
+                    }""",
+            """
+                    {
+                      "details": {
+                        "cost": {
+                          "currency": "USD",
+                          "amount": -5
+                        }
+                      }
+                    }""",
+            """
+                    {
+                      "details": {
+                        "cost": {
+                          "currency": {}
+                        }
+                      }
+                    }""",
+            """
+                    {
+                      "details": {
+                        "cost": {
+                          "currency": {
+                            "alphaCode": "invalid"
+                          }
+                        }
+                      }
+                    }""",
+            """
+                    {
+                      "details": {
+                        "cost": {
+                          "currency": {
+                            "alphaCode": "USD"
+                          }
+                        }
+                      }
+                    }"""
+    })
+    void invalidMessage(String message) {
         sendEvents(payerId -> message);
 
         // TODO find a way to spy on ObjectMapper in Quarkus tests to handle this with a latch
         //      don't want to waste any more time on it now
-        sleepUninterruptibly(500, MILLISECONDS);
+        sleepUninterruptibly(100, MILLISECONDS);
 
         assertThat(paymentService.getProcessedEvents())
                 .isEmpty();
@@ -171,6 +234,10 @@ class PaymentRegistrationListenerTest {
         static final String CURRENCY = "USD";
         static final String LANGUAGE_TAG = "en-US";
         static final Locale LOCALE = Locale.US;
+    }
+
+    static class PreventExecutionOnSetupFailureExtension implements LifecycleMethodExecutionExceptionHandler {
+
     }
 
 }

@@ -49,7 +49,7 @@ public class Cost implements Comparable<Cost> {
 
     public Cost add(Cost other) {
         if (!currency.equals(other.currency)) {
-            throw new UnsupportedOperationException("Adding money in different currencies is unsupported at this moment");
+            throw new UnsupportedOperationException("Adding money in different currencies is unsupported at the moment");
         }
         return new Cost(currency, amount.add(other.amount));
     }

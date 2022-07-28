@@ -15,6 +15,7 @@
 
     <properties>
         <quarkus.container-image.group>${project.groupId}</quarkus.container-image.group>
+        <jacoco.exec.file>${project.build.directory}/jacoco-quarkus.exec</jacoco.exec.file>
     </properties>
 
     <dependencies>
@@ -93,6 +94,11 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jacoco</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,7 +109,7 @@
         </testResources>
         <plugins>
             <plugin>
-                <groupId>io.quarkus.platform</groupId>
+                <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus.version}</version>
                 <extensions>true</extensions>
@@ -113,6 +119,32 @@
                             <goal>build</goal>
                             <goal>generate-code</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <exclClassLoaders>*QuarkusClassLoader</exclClassLoaders>
+                            <destFile>${jacoco.exec.file}</destFile>
+                            <append>true</append>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${jacoco.exec.file}</dataFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
