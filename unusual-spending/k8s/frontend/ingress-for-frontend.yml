@@ -6,6 +6,11 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
   ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: frontend-app
+      port:
+        name: ui
   rules:
     - http:
         paths:
