@@ -1,4 +1,4 @@
-name: Java CI with Maven
+name: Build and run tests
 
 on:
   push:
@@ -7,10 +7,10 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  maven-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - uses: actions/setup-java@v2
@@ -31,3 +31,32 @@ jobs:
         run: >
           mvn -B clean verify
           sonar:sonar -Dsonar.projectKey=Jonarzz_refactoring-katas -Dsonar.organization=jonarzz -Dsonar.host.url=https://sonarcloud.io
+  unusual-spending-frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: unusual-spending/frontend
+    strategy:
+      matrix:
+        node-version: [18.x]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Clean and install using Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci --force # TODO remove the flag after migrating to cypress/react18 when it's available
+      - name: Run linter
+        uses: wearerequired/lint-action@v2.0.1
+        with:
+          eslint: true
+          eslint_dir: unusual-spending/frontend
+          continue_on_error: false
+      - name: Build and run tests
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm run build
+      - run: npm test
