@@ -16,11 +16,13 @@ interface Variables {
 interface GraphqlStub {
   readonly operationName: Operation.GET_USER_PAYMENTS | Operation.GET_PAYMENT_DETAILS,
   readonly variables: Variables,
-  readonly response: UserPaymentsResponse | PaymentDetailsResponse,
+  readonly responseCode?: number,
+  readonly response?: UserPaymentsResponse | PaymentDetailsResponse,
   readonly responseDelayMs?: number
 }
 
-const createPayment = (amount: number, currency: string, id = 'payment-id'): ResponsePayment => ({
+let i = 1;
+const createPayment = (amount: number, currency: string, id = 'payment-id-' + i++): ResponsePayment => ({
   id,
   cost: {
     amount,
@@ -45,6 +47,7 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
         }
         req.reply({
           delay: stub.responseDelayMs || 0,
+          statusCode: stub.responseCode || 200,
           body: {
             data: stub.response,
           },
@@ -129,7 +132,26 @@ describe('user payments table', () => {
       .should('be.visible');
   });
 
-  describe('expanded row', () => {
+  it('should display a user-friendly message if an error occurs', () => {
+    const userId = 100;
+    interceptApiCall([{
+      operationName: Operation.GET_USER_PAYMENTS,
+      variables: {userId},
+      responseCode: 500
+    }]);
+
+    mount(<PaymentsTable userId={userId}/>);
+
+    cy.get('div')
+      .contains('Fetching payments failed. Please, contact with the administrator.');
+  });
+
+  describe('expandable details row', () => {
+
+    const expandDetailsRow = () => cy.get('td > button')
+                                     .click();
+
+    const getProgressBar = () => cy.get('.payment-row__expandable-box > span[role=progressbar]');
 
     it('should display payment details table header', () => {
       const userId = 5, paymentId = '17f7e88d-9e8a-46d3-80ef-fb283d6ef62c';
@@ -151,8 +173,7 @@ describe('user payments table', () => {
 
       mount(<PaymentsTable userId={userId}/>);
 
-      cy.get('td > button')
-        .click();
+      expandDetailsRow();
       const expectedHeaderCells = [
         'Date', 'Category', 'Description'
       ];
@@ -187,8 +208,7 @@ describe('user payments table', () => {
 
       mount(<PaymentsTable userId={userId}/>);
 
-      cy.get('td > button')
-        .click();
+      expandDetailsRow();
       const expectedCells = [
         '01/08/2022 11:57:23', category, description
       ];
@@ -196,6 +216,8 @@ describe('user payments table', () => {
         .each((cell, idx) => cy.wrap(cell)
                                .should('have.text', expectedCells[idx])
                                .should('be.visible'));
+      getProgressBar()
+        .should('not.exist');
     });
 
     it('should display a loader while waiting for payment details response', () => {
@@ -220,10 +242,34 @@ describe('user payments table', () => {
 
       mount(<PaymentsTable userId={userId}/>);
 
-      cy.get('td > button')
-        .click();
-      cy.get('span[role=progressbar]')
+      expandDetailsRow();
+      getProgressBar()
         .should('be.visible');
+    });
+
+    it('should display a user-friendly message if an error occurs', () => {
+      const userId = 200,
+        paymentId = 'payment-with-error';
+      interceptApiCall([{
+        operationName: Operation.GET_USER_PAYMENTS,
+        variables: {userId},
+        response: {
+          userPayments: [createPayment(1, 'USD', paymentId)],
+        },
+      }, {
+        operationName: Operation.GET_PAYMENT_DETAILS,
+        variables: {paymentId},
+        responseCode: 500
+      }]);
+
+      mount(<PaymentsTable userId={userId}/>);
+
+      expandDetailsRow();
+      cy.get('.payment-row__expandable-box > div > div')
+        .contains('Fetching payment details failed. Please, contact with the administrator.')
+        .should('be.visible');
+      getProgressBar()
+        .should('not.exist');
     });
 
   });

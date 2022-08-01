@@ -1,6 +1,6 @@
 import {ApolloQueryResult, gql} from '@apollo/client';
 import {KeyboardArrowDown, KeyboardArrowUp} from '@mui/icons-material';
-import {Box, Collapse, IconButton, LinearProgress, Table, TableBody, TableCell, TableHead, TableRow} from '@mui/material';
+import {Alert, Box, Collapse, IconButton, LinearProgress, Table, TableBody, TableCell, TableHead, TableRow} from '@mui/material';
 import React, {useState} from 'react';
 import {runQuery} from './PaymentApiClient';
 import {Payment} from './PaymentsTable';
@@ -49,6 +49,7 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
 
   const [details, setDetails] = useState<PaymentDetails>();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
 
   const [expanded, setExpanded] = useState(false);
 
@@ -58,9 +59,14 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
       setLoading(true);
       // TODO implementation in backend
       runQuery(PAYMENT_DETAILS_QUERY, {paymentId: payment.id})
-        .then(result => setDetails(mapPaymentDetails(result)))
-        // TODO error handling
-        .catch(error => console.error(error))
+        .then(result => {
+          setDetails(mapPaymentDetails(result));
+          setError(undefined);
+        })
+        .catch(error => {
+          console.error(error.message);
+          setError(error.message);
+        })
         .finally(() => setLoading(false));
     }
   };
@@ -81,7 +87,8 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
         <TableCell colSpan={3}>
           <Collapse in={expanded} unmountOnExit>
             <Box className="payment-row__expandable-box">
-              {(loading || !details) && <LinearProgress variant="query"/>}
+              {loading && <LinearProgress variant="query"/>}
+              {error && <Alert severity='error'>Fetching payment details failed. Please, contact with the administrator.</Alert>}
               {details &&
                 <Table size="small">
                   <TableHead>

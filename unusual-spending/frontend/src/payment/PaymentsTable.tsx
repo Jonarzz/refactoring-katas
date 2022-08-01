@@ -48,19 +48,26 @@ const mapPayments = (result: ApolloQueryResult<UserPaymentsResponse>): Payment[]
       amount,
       currency: currency.alphaCode,
     });
-  })
+  });
 
 const PaymentsTable = ({userId}: {userId: number}) => {
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
 
   const getUserPayments = (userId: number, force = false) => {
     setLoading(true);
+    // TODO pagination
     runQuery(USER_PAYMENTS_QUERY, {userId}, force)
-      .then(result => setPayments(mapPayments(result)))
-      // TODO error handling
-      .catch(error => console.error(error))
+      .then(result => {
+        setPayments(mapPayments(result));
+        setError(undefined);
+      })
+      .catch(error => {
+        console.error(error.message);
+        setError(error.message);
+      })
       .finally(() => setLoading(false));
   };
 
@@ -70,6 +77,14 @@ const PaymentsTable = ({userId}: {userId: number}) => {
 
   if (loading) {
     return <CircularProgress/>;
+  }
+
+  if (error) {
+    return (
+      <Alert severity="error" variant="outlined">
+        Fetching payments failed. Please, contact with the administrator.
+      </Alert>
+    );
   }
 
   if (payments.length === 0) {
