@@ -25,7 +25,7 @@ interface PaymentDetails {
 
 const PAYMENT_DETAILS_QUERY = gql`
   query GetPaymentDetails($paymentId: String!) {
-    paymentDetails (id: $paymentId) {
+    paymentDetails (paymentId: $paymentId) {
       timestamp
       description
       category {
@@ -57,7 +57,6 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
     setExpanded(expanded);
     if (expanded && !details) {
       setLoading(true);
-      // TODO implementation in backend
       runQuery(PAYMENT_DETAILS_QUERY, {paymentId: payment.id})
         .then(result => {
           setDetails(mapPaymentDetails(result));

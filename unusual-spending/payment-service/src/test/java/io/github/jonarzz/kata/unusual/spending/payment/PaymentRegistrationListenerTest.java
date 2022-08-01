@@ -167,9 +167,9 @@ class PaymentRegistrationListenerTest {
     private static String createMessageWithExplicitCurrencyJsonPart(int payerId, String currencyJsonPart) {
         return """
                 {
-                  "id": "%s",
                   "payerId": "%s",
                   "details": {
+                  "id": "%s",
                     "timestamp": "%s",
                     "category": "%s",
                     "cost": {
@@ -178,8 +178,8 @@ class PaymentRegistrationListenerTest {
                     }
                   }
                 }
-                """.formatted(MessageData.ID,
-                              payerId,
+                """.formatted(payerId,
+                              MessageData.ID,
                               MessageData.TIMESTAMP_STRING,
                               MessageData.CATEGORY,
                               MessageData.AMOUNT,
@@ -187,14 +187,15 @@ class PaymentRegistrationListenerTest {
     }
 
     private void assertProcessedEvents() {
-        assertThat(paymentService.getProcessedEvents())
+        assertThat((paymentService.getProcessedEvents()))
                 .as("Processed events")
                 .hasSize(SINGLE_RUN_EVENT_COUNT)
                 .allSatisfy(paymentEvent -> assertThat(paymentEvent)
-                        .returns(MessageData.ID, event -> event.id().toString())
                         .satisfies(event -> assertThat(event.details())
                                 .returns(MessageData.CATEGORY, details -> details.category()
                                                                                  .toString())
+                                .returns(MessageData.ID, details -> details.id()
+                                                                           .toString())
                                 .returns(MessageData.TIMESTAMP, PaymentDetails::timestamp)
                                 .extracting(PaymentDetails::cost)
                                 .returns(MessageData.AMOUNT, Cost::getAmount)

@@ -13,6 +13,8 @@ import javax.validation.Validator;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @ApplicationScoped
 public class PaymentService {
@@ -43,6 +45,11 @@ public class PaymentService {
         return paymentRepository.getPaymentDetailsBetween(userId, from, to);
     }
 
+    Optional<PaymentDetails> getPaymentDetails(UUID paymentId) {
+        LOG.debugf("Retrieving details of payment with ID: %s", paymentId);
+        return paymentRepository.getPaymentDetails(paymentId);
+    }
+
     @ActivateRequestContext
     void save(PaymentRegisteredEvent paymentEvent) {
         var validationErrors = validator.validate(paymentEvent);
@@ -56,8 +63,8 @@ public class PaymentService {
         }
         LOG.debugf("Saving %s", paymentEvent);
         if (!paymentRepository.save(paymentEvent)) {
-            LOG.infof("Event with ID %s has been saved already", paymentEvent.id());
+            LOG.infof("Event with ID %s has been saved already", paymentEvent.details()
+                                                                             .id());
         }
     }
-
 }

@@ -40,10 +40,10 @@ The service polls payment events from a topic (`payment/register/<version>`) and
 Example of such an event:
 ```json
 {
-  "id": "7b8d8c9f-a8fb-486d-9c44-96008b30118e",
-  "timestamp": "2022-07-02T12:13:49+02",
   "payerId": 1,
   "details": {
+    "id": "7b8d8c9f-a8fb-486d-9c44-96008b30118e",
+    "timestamp": "2022-07-02T12:13:49+02",
     "category": "groceries",
     "description": "Credit card payment at Walmart",
     "cost": {
@@ -136,9 +136,9 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
 "payerId": 1,
 "details": {
+  "id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
   "category": "groceries",
   "description": "Credit card payment at Walmart",
   "cost": {
@@ -154,9 +154,9 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"id": "ba1d8c9f-c7fb-486d-9c44-98008b30117c",
 "payerId": 1,
 "details": {
+  "id": "ba1d8c9f-c7fb-486d-9c44-98008b30117c",
   "timestamp": "2022-07-27T16:13:21+02",
   "category": "travel",
   "cost": {

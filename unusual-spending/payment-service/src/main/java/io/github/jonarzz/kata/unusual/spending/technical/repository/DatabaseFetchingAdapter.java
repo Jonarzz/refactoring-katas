@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @ApplicationScoped
 public class DatabaseFetchingAdapter {
@@ -23,6 +24,15 @@ public class DatabaseFetchingAdapter {
                 results.add(resultMapper.map(resultSet));
             }
             return results;
+        }, sqlTemplate, params);
+    }
+
+    public <T> Optional<T> fetchSingle(ResultMapper<T> resultMapper, String sqlTemplate, Object... params) {
+        return handleQuery(resultSet -> {
+            if (resultSet.next()) {
+                return Optional.of(resultMapper.map(resultSet));
+            }
+            return Optional.empty();
         }, sqlTemplate, params);
     }
 

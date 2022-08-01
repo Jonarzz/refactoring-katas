@@ -5,11 +5,15 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.ListAssert;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -76,6 +80,7 @@ class PaymentResourceApiTest {
                           },
                           "query": "query GetUserPaymentsBetweenDates($userId: BigInteger!, $from: DateTime, $to: DateTime) {
                             userPayments (userId: $userId, from: $from, to: $to) {
+                              id
                               timestamp
                               description
                               category {
@@ -92,9 +97,11 @@ class PaymentResourceApiTest {
                         }""");
 
         assertPayments(response)
-                .extracting("cost.amount", "cost.currency.alphaCode", "category.name", "description", "timestamp")
+                .extracting("id", "timestamp", "description",
+                            "category.name", "cost.amount", "cost.currency.alphaCode")
                 .containsExactly(
-                        tuple(11.99f, "USD", "groceries", "Other test description", "2022-05-04T07:11:33Z")
+                        tuple("2a3dff5e-74ac-4da4-a867-9d12dcd23cd3", "2022-05-04T07:11:33Z", "Other test description",
+                              "groceries", 11.99f, "USD")
                 );
     }
 
@@ -117,6 +124,32 @@ class PaymentResourceApiTest {
                 .containsExactly("User ID is required");
     }
 
+    @Test
+    void getPaymentDetailsById() {
+        var response = sendGraphQlRequest(
+                """
+                        {
+                          "variables": {
+                            "paymentId": "c1c3856a-0e7e-42c1-a61b-e7670c538318"
+                          },
+                          "query": "query GetPaymentDetails($paymentId: String!) {
+                            paymentDetails (paymentId: $paymentId) {
+                              timestamp
+                              description
+                              category {
+                                name
+                              }
+                            }
+                          }"
+                        }""");
+
+        assertPaymentDetails(response)
+                .extracting("timestamp", "description", "category.name")
+                .containsExactly(
+                        "2022-05-01T12:00:01Z", "Some test description", "travel"
+                );
+    }
+
     private Response sendGraphQlRequest(String jsonBody) {
         return given()
                     .contentType(JSON)
@@ -129,18 +162,28 @@ class PaymentResourceApiTest {
     }
 
     private ListAssert<Object> assertPayments(Response response) {
-        return assertJsonPath(response, "data.userPayments");
+        return assertJsonPathList(response, "data.userPayments");
+    }
+
+    private AbstractObjectAssert<?, Object> assertPaymentDetails(Response response) {
+        return assertJsonPath(response)
+                .extracting(jsonPath -> jsonPath.get("data.paymentDetails"));
     }
 
     private ListAssert<Object> assertErrors(Response response) {
-        return assertJsonPath(response, "errors");
+        return assertJsonPathList(response, "errors");
     }
 
-    private ListAssert<Object> assertJsonPath(Response response, String errors) {
+    private ObjectAssert<JsonPath> assertJsonPath(Response response) {
         var responseBody = response.getBody();
-        return assertThat(responseBody.jsonPath()
-                                      .getList(errors))
+        return assertThat(responseBody.jsonPath())
                 .as(responseBody::prettyPrint);
+    }
+
+    private ListAssert<Object> assertJsonPathList(Response response, String path) {
+        return assertJsonPath(response)
+                .extracting(jsonPath -> jsonPath.getList(path),
+                            list(Object.class));
     }
 
 }

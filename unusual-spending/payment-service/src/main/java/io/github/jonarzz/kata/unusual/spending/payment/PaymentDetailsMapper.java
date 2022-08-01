@@ -14,6 +14,7 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Optional;
+import java.util.UUID;
 
 class PaymentDetailsMapper implements ResultMapper<PaymentDetails> {
 
@@ -26,6 +27,7 @@ class PaymentDetailsMapper implements ResultMapper<PaymentDetails> {
 
     @Override
     public PaymentDetails map(ResultSet result) throws SQLException {
+        var id = UUID.fromString(result.getString("id"));
         var category = Category.named(result.getString("category"));
         var currency = Currency.create(result.getString("alpha_code"),
                                        result.getString("language_tag"));
@@ -35,7 +37,7 @@ class PaymentDetailsMapper implements ResultMapper<PaymentDetails> {
                                 .map(dateTime -> OffsetDateTime.of(dateTime, UTC))
                                 .orElse(null);
         var description = result.getString("description");
-        return new PaymentDetails(category, cost, timestamp, description);
+        return new PaymentDetails(id, category, cost, timestamp, description);
     }
 
 }

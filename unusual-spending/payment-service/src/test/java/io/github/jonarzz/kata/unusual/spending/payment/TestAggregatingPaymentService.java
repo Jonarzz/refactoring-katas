@@ -10,6 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -56,7 +57,7 @@ class TestAggregatingPaymentService extends PaymentService {
     }
 
     Collection<PaymentRegisteredEvent> getProcessedEvents() {
-        return processedEvents;
+        return List.copyOf(processedEvents);
     }
 
     void reset() {

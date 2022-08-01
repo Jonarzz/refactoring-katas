@@ -58,6 +58,7 @@ const PaymentsTable = ({userId}: {userId: number}) => {
 
   const getUserPayments = (userId: number, force = false) => {
     setLoading(true);
+    // TODO add dates to the query
     // TODO pagination
     runQuery(USER_PAYMENTS_QUERY, {userId}, force)
       .then(result => {

@@ -7,6 +7,8 @@ import org.eclipse.microprofile.graphql.Query;
 
 import java.time.OffsetDateTime;
 import java.util.Collection;
+import java.util.Optional;
+import java.util.UUID;
 
 @GraphQLApi
 public class PaymentResourceApi {
@@ -26,6 +28,15 @@ public class PaymentResourceApi {
             throw new BadRequestException("User ID is required");
         }
         return paymentService.getUserPayments(userId, from, to);
+    }
+
+    @Query
+    @Description("Get details of given payment")
+    public Optional<PaymentDetails> paymentDetails(@Name("paymentId") String paymentId) {
+        if (paymentId == null) {
+            throw new BadRequestException("Payment ID is required");
+        }
+        return paymentService.getPaymentDetails(UUID.fromString(paymentId));
     }
 
     private static class BadRequestException extends IllegalArgumentException {

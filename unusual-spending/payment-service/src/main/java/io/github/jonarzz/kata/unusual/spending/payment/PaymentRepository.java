@@ -11,6 +11,7 @@ import javax.enterprise.context.ApplicationScoped;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.UUID;
 
 @ApplicationScoped
 class PaymentRepository {
@@ -25,7 +26,7 @@ class PaymentRepository {
     }
 
     Collection<PaymentDetails> getPaymentDetailsBetween(Long payerId, OffsetDateTime from, OffsetDateTime to) {
-        var sqlTemplate = "SELECT p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time "
+        var sqlTemplate = "SELECT p.id, p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time "
                          + "FROM payment p "
                          + "JOIN currency c ON p.currency = c.alpha_code "
                          + "WHERE p.payer_id = ?";
@@ -39,13 +40,23 @@ class PaymentRepository {
                                      sqlTemplate, payerId, toStringAtSystemOffset(from), toStringAtSystemOffset(to));
     }
 
+    Optional<PaymentDetails> getPaymentDetails(UUID paymentId) {
+        return queryingAdapter.fetchSingle(
+                new PaymentDetailsMapper(),
+                "SELECT p.id, p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time "
+                + "FROM payment p "
+                + "JOIN currency c ON p.currency = c.alpha_code "
+                + "WHERE p.id = ?",
+                paymentId);
+    }
+
     boolean save(PaymentRegisteredEvent paymentEvent) {
         var payerId = paymentEvent.payerId();
-        var eventId = paymentEvent.id();
+        var details = paymentEvent.details();
+        var eventId = details.id();
         if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = ?", eventId)) {
             return false;
         }
-        var details = paymentEvent.details();
         var cost = details.cost();
         var currency = cost.getCurrency();
         createCurrencyIfDoesNotExist(currency);

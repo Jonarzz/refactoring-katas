@@ -3,6 +3,7 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 import static io.github.jonarzz.kata.unusual.spending.money.Cost.usd;
 import static io.github.jonarzz.kata.unusual.spending.payment.AggregationPolicy.category;
 import static java.time.Month.MAY;
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
@@ -68,7 +69,9 @@ class PaymentServiceTest {
             when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(priceByCategory.entrySet()
                                                .stream()
-                                               .map(entry -> new PaymentDetails(entry.getKey(), entry.getValue()))
+                                               .map(entry -> new PaymentDetails(randomUUID(),
+                                                                                entry.getKey(),
+                                                                                entry.getValue()))
                                                .toList());
 
             var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
@@ -85,7 +88,9 @@ class PaymentServiceTest {
                                                  .sum();
             when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(dollarValuesSupplier.get()
-                                                    .mapToObj(dollars -> new PaymentDetails(category, usd(dollars, 0)))
+                                                    .mapToObj(dollars -> new PaymentDetails(randomUUID(),
+                                                                                            category,
+                                                                                            usd(dollars, 0)))
                                                     .toList());
 
             var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
@@ -100,12 +105,12 @@ class PaymentServiceTest {
             var categorySummingUpTo2 = Category.named("GROCERIES");
             when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
                     .thenReturn(List.of(
-                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
-                            new PaymentDetails(categorySummingUpTo2, usd(1, 0)),
-                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
-                            new PaymentDetails(categorySummingUpTo4, usd(1, 0)),
-                            new PaymentDetails(categorySummingUpTo2, usd(1, 0)),
-                            new PaymentDetails(categorySummingUpTo4, usd(1, 0))
+                            new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(randomUUID(), categorySummingUpTo2, usd(1, 0)),
+                            new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0)),
+                            new PaymentDetails(randomUUID(), categorySummingUpTo2, usd(1, 0)),
+                            new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0))
                     ));
 
             var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
@@ -122,19 +127,18 @@ class PaymentServiceTest {
     @Nested
     class SaveTest {
 
-        final UUID id = UUID.randomUUID();
+        final UUID id = randomUUID();
         final OffsetDateTime timestamp = OffsetDateTime.now();
 
         @Test
         void emptyEvent() {
-            var event = new PaymentRegisteredEvent(null, null, null);
+            var event = new PaymentRegisteredEvent(null, null);
 
             ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
 
             assertThatThrownBy(methodUnderTest)
                     .hasMessageStartingWith("Event validation failed. ")
                     .hasMessageContainingAll(
-                            "Event ID cannot be null. ",
                             "Payer ID cannot be null. ",
                             "Payment details cannot be null. "
                     );
@@ -144,10 +148,11 @@ class PaymentServiceTest {
         void eventWithNegativePayerId() {
             var negativePayerId = -5L;
             var details = new PaymentDetails(
+                    id,
                     Category.named("groceries"),
                     Cost.usd(11.05)
             );
-            var event = new PaymentRegisteredEvent(id, negativePayerId, details);
+            var event = new PaymentRegisteredEvent(negativePayerId, details);
 
             ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
 
@@ -162,10 +167,11 @@ class PaymentServiceTest {
         void minimalValidEvent() {
             var id = this.id;
             var paymentDetails = new PaymentDetails(
+                    id,
                     Category.named("travel"),
                     Cost.usd(12.35)
             );
-            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails);
+            var event = new PaymentRegisteredEvent(payerId, paymentDetails);
 
             service.save(event);
 
@@ -177,12 +183,13 @@ class PaymentServiceTest {
         void eventWithAllDataFilled() {
             var id = this.id;
             var paymentDetails = new PaymentDetails(
+                    id,
                     Category.named("travel"),
                     Cost.usd(12.35),
                     timestamp,
                     "Payment description"
             );
-            var event = new PaymentRegisteredEvent(id, payerId, paymentDetails);
+            var event = new PaymentRegisteredEvent(payerId, paymentDetails);
 
             service.save(event);
 

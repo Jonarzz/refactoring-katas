@@ -22,7 +22,7 @@ interface GraphqlStub {
 }
 
 let i = 1;
-const createPayment = (amount: number, currency: string, id = 'payment-id-' + i++): ResponsePayment => ({
+const createPayment = (amount: number, currency: string, id = ('payment-id-' + i++)): ResponsePayment => ({
   id,
   cost: {
     amount,
@@ -43,7 +43,9 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
         const notMatchingVariables = Object.entries(stub.variables)
                                            .filter(([key, value]) => variables[key] !== value);
         if (notMatchingVariables.length > 0) {
-          throw `Query variables mismatch - expected ${notMatchingVariables} in ${JSON.stringify(variables)}`;
+          console.info(`Skipping stubbing as query variables do not match: 
+                        expected ${notMatchingVariables} in ${JSON.stringify(variables)}`);
+          return;
         }
         req.reply({
           delay: stub.responseDelayMs || 0,
