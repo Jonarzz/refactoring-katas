@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^3.6.9",
     "@emotion/react": "^11.9.3",
     "@emotion/styled": "^11.9.3",
     "@mui/material": "^5.9.2",
+    "@mui/icons-material": "^5.8.4",
     "@types/jest": "^28.1.6",
     "@types/node": "^18.6.2",
     "@types/react": "^18.0.15",
@@ -14,16 +16,18 @@
     "@typescript-eslint/parser": "^5.31.0",
     "eslint": "^8.20.0",
     "eslint-plugin-react": "^7.30.1",
+    "graphql": "^16.5.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
+    "prop-types": "^15.8.1",
     "typescript": "^4.7.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "npx cypress run --component --config video=false",
+    "test": "TZ=UTC npx cypress run --component --config video=false",
+    "cy-component-testing": "TZ=UTC npx cypress open --component",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -47,6 +51,7 @@
   "devDependencies": {
     "@cypress/react": "^6.0.0",
     "@cypress/webpack-dev-server": "^2.0.0",
-    "cypress": "^10.3.1"
+    "cypress": "^10.3.1",
+    "react-scripts": "5.0.1"
   }
 }

@@ -99,7 +99,7 @@ and increase the number later, when database and JMS broker pods are up)
     minikube addons enable ingress
     minikube tunnel
 
-GraphQL console is available at: http://localhost/payment/q/graphql-ui
+GraphQL console is available at: http://localhost/api/payment/q/graphql-ui
 
 ---
 
