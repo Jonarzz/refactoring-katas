@@ -29,6 +29,7 @@ public class PaymentService {
         this.paymentRepository = paymentRepository;
     }
 
+    // TODO default visibility after moving all modules to MS
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
                                                          Long userId, AggregationTimespan timespan) {
         LOG.debugf("Aggregating total user expenses with %s policy for user with ID %s in %s",

@@ -26,7 +26,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "TZ=UTC npx cypress run --component --config video=false",
+    "test": "TZ=UTC CYPRESS_NO_COMMAND_LOG=1 npx cypress run --component --config video=false",
     "cy-component-testing": "TZ=UTC npx cypress open --component",
     "eject": "react-scripts eject"
   },

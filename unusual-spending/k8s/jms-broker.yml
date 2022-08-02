@@ -90,8 +90,8 @@ data:
            org.apache.activemq.jaas.properties.user="users.properties"
            org.apache.activemq.jaas.properties.role="roles.properties";
     };
-  # TODO k8s does not allow referencing secrets from config maps: https://github.com/kubernetes/kubernetes/issues/79224
-  #      this should be mounted as a file from the secret
+  # TODO this should be mounted as a file from the secret
+  #      k8s does not allow referencing secrets from config maps: https://github.com/kubernetes/kubernetes/issues/79224
   users.properties: |
     artemis = artemis
   roles.properties: |

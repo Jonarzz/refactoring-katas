@@ -56,6 +56,8 @@ spec:
                   fieldPath: metadata.namespace
             - name: QUARKUS_LOG_LEVEL
               value: INFO
+            - name:  QUARKUS_LIQUIBASE_MIGRATE_AT_START
+              value: 'true' # set to 'false' to skip schema creation (better startup time)
             - name:  QUARKUS_LIQUIBASE_CLEAN_AT_START
               value: 'false' # set to 'true' to recreate the schema
             # JMS

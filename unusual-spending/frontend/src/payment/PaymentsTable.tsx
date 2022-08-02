@@ -29,8 +29,8 @@ export interface Payment {
 const USER_PAYMENTS_QUERY = gql`
 query GetUserPayments($userId: BigInteger!) {
   userPayments (userId: $userId) {
+    id
     cost {
-      id
       amount
       currency {
         alphaCode
@@ -66,7 +66,7 @@ export const PaymentsTable = ({userId}: {userId: number}) => {
         setError(undefined);
       })
       .catch(error => {
-        console.error(error.message);
+        console.error(error);
         setError(error.message);
       })
       .finally(() => setLoading(false));

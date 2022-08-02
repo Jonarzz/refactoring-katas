@@ -37,8 +37,6 @@ public class UnusualExpensesNotificationService {
     // TODO triggered as a scheduled task (external service)
     // TODO ELK
     // TODO Prometheus
-    // TODO front-end
-    // TODO Cypress tests
 
     public Optional<String> createNotificationBody(long userId) {
         LOG.debugf("Creating notification body for user with ID %s", userId);

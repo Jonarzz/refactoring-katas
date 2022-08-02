@@ -51,7 +51,6 @@ public class DatabaseFetchingAdapter {
             }
             return resultSetMapper.apply(statement.executeQuery());
         } catch (SQLException e) {
-            // TODO improve exception handling in the whole kata
             throw new IllegalStateException(e);
         }
     }

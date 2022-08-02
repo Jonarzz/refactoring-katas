@@ -14,7 +14,7 @@ interface Variables {
 }
 
 interface GraphqlStub {
-  readonly operationName: Operation.GET_USER_PAYMENTS | Operation.GET_PAYMENT_DETAILS,
+  readonly operationName: Operation,
   readonly variables: Variables,
   readonly responseCode?: number,
   readonly response?: UserPaymentsResponse | PaymentDetailsResponse,

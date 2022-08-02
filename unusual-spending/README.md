@@ -66,6 +66,9 @@ which some consider to be a bad practice (using default credentials **is** a bad
 Artemis JMS broker was configured inline in the Kubernetes deployment configuration,
 which was also a way to spend less time on the configuration part.
 
+All the steps to run the cluster are included in the `scripts/runLocalCluster.sh` file.
+JDK 17, Maven, Docker, Kubernetes, Minikube and Node.js need to be installed.
+
 1. Startup Minikube:
 
 

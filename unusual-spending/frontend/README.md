@@ -19,11 +19,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
     
     docker build -t io.github.jonarzz/unusual-spending-frontend:1.0.0-SNAPSHOT .
 
-3. 
-
-4. Load the image into Minikube registry (replica count for the deployment should be 0):
+3. Load the image into Minikube registry (replica count for the deployment should be 0):
 
 
     minikube image load io.github.jonarzz/unusual-spending-frontend:1.0.0-SNAPSHOT
 
-3. After reloading the `frontend-app` deployment, ingress serves the application at http://localhost/ (`minikube tunnel` required).
+4. After reloading the `frontend-app` deployment, ingress serves the application at http://localhost/ (`minikube tunnel` required).

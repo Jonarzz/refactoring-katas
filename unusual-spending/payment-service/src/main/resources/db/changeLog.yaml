@@ -1,5 +1,4 @@
 databaseChangeLog:
-  # TODO add indexes
   - changeSet:
       id: create-tables
       author: jonasz
@@ -70,3 +69,18 @@ databaseChangeLog:
                   type: timestamp
                   constraints:
                     nullable: false
+        - createIndex:
+            indexName: idx_payment_category
+            tableName: payment
+            column:
+              name: category
+        - createIndex:
+            indexName: idx_payment_payer_id
+            tableName: payment
+            column:
+              name: payer_id
+        - createIndex:
+            indexName: idx_payment_time
+            tableName: payment
+            column:
+              name: time

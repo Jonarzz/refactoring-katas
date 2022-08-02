@@ -86,7 +86,7 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
         <TableCell colSpan={3}>
           <Collapse in={expanded} unmountOnExit>
             <Box className="payment-row__expandable-box">
-              {loading && <LinearProgress variant="query"/>}
+              {(loading || (!details && !error)) && <LinearProgress variant="query"/>}
               {error && <Alert severity='error'>Fetching payment details failed. Please, contact with the administrator.</Alert>}
               {details &&
                 <Table size="small">

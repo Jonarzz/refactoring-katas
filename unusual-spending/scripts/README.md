@@ -1,0 +1,1 @@
+Scripts should be run from the base directory (`..`).
