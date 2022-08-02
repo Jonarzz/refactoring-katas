@@ -1,7 +1,7 @@
 import {mount} from '@cypress/react';
 import React from 'react';
 import {PaymentDetailsResponse} from './PaymentRow';
-import PaymentsTable, {ResponsePayment, UserPaymentsResponse} from './PaymentsTable';
+import {PaymentsTable, ResponsePayment, UserPaymentsResponse} from './PaymentsTable';
 
 enum Operation {
   GET_USER_PAYMENTS = 'GetUserPayments',

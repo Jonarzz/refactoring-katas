@@ -63,7 +63,7 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
           setError(undefined);
         })
         .catch(error => {
-          console.error(error.message);
+          console.error(error);
           setError(error.message);
         })
         .finally(() => setLoading(false));

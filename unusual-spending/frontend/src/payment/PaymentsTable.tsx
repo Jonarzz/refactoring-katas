@@ -50,7 +50,7 @@ const mapPayments = (result: ApolloQueryResult<UserPaymentsResponse>): Payment[]
     });
   });
 
-const PaymentsTable = ({userId}: {userId: number}) => {
+export const PaymentsTable = ({userId}: {userId: number}) => {
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,5 +121,3 @@ const PaymentsTable = ({userId}: {userId: number}) => {
 PaymentsTable.propTypes = {
   userId: PropTypes.number.isRequired
 };
-
-export default PaymentsTable;
