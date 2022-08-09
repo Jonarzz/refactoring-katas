@@ -1,4 +1,24 @@
 # [Unusual Spending kata](https://kata-log.rocks/unusual-spending-kata)
+<!-- TOC -->
+* [Unusual Spending kata](#unusual-spending-kata)
+  * [Requirements](#requirements)
+    * [Follow-up (over-the-top)](#follow-up--over-the-top-)
+      * [Architecture](#architecture)
+      * [Events](#events)
+        * [UserCreated](#usercreated)
+        * [PaymentStored](#paymentstored)
+        * [NotificationSent](#notificationsent)
+        * [_"Legacy events"_](#_legacy-events_)
+          * [PaymentRegistered](#paymentregistered)
+          * [PaymentStored](#paymentstored)
+      * [Notifications table](#notifications-table)
+      * [Kubernetes microservices](#kubernetes-microservices)
+        * [Rationale](#rationale)
+        * [Setup and usage](#setup-and-usage)
+          * [Recommended reading](#recommended-reading)
+        * [Pods SSH commands](#pods-ssh-commands)
+          * [jms-broker](#jms-broker)
+<!-- TOC -->
 ## Requirements
 You work at a credit card company and as a value-add they want to start providing alerts to users when their spending in any particular category is higher than usual.
 
@@ -26,17 +46,51 @@ for which spending was unusually high, with a subject like
     Love,
     The Credit Card Company
 
-### Follow-up
-The follow-up to the basic kata requirements is a small system made of a few microservices 
-working together in a Kubernetes cluster. To organize the target state of the application
-a simple, one-man event storming was performed as a way of getting to know the technique in practice.
-![Event storming result](event-storming.png)
+### Follow-up (over-the-top)
+#### Architecture
+The follow-up to the basic kata requirements was initially planned 
+as a small system consisting of a few microservices working together 
+in a Kubernetes cluster. 
 
-## Microservices
-### Payment
+To come up with the target state of the application a simple, 
+one-man event storming was performed. First and foremost it was a way of 
+getting to know the technique in practice, 
+but it also enabled discovering natural domain boundaries.
+![Event storming result](docs/event-storming.png)
+
+Later on as I've caught up more and more and learned about serverless design
+and Amazon Web Services, I've decided to leave the part of the system
+that was already running on Kubernetes 
+(Payment Store service, Artemis JMS broker, H2 database) 
+in place and instead of transforming other parts to microservices in the same K8S cluster
+I redesigned the solution to tackle a serverless approach.
+
+Target system architecture:
+![Architecture diagram](docs/architecture.png)
+
+Notification handler (Step Functions):
+![Notification handler](docs/notification-handler-step-functions.jpg)
+
+Notification handling could also be implemented as separated lambdas based on
+notification-related events, e.g.
+`NotificationCreated`, `NotificationSent`, `NotificationModificationFailed`.
+Such architecture would however be still strictly coupled - 
+step functions seem more explicit in this case. 
+
 #### Events
-##### PaymentRegisteredEvent
-The service polls payment events from a topic (`payment/register/<version>`) and saves them in the database for future use.
+##### UserCreated
+TBD
+##### PaymentStored
+TBD
+##### NotificationSent
+TBD
+##### _"Legacy events"_
+Events sent to the "legacy" JMS broker in the Kubernetes cluster.
+Normally it would be migrated to match other events, but was left in place to resemble
+a not-fully migrated system.
+###### PaymentRegistered
+The service polls payment events from a topic (`payment/register/<version>`)
+and saves them in the database for future use.
 Example of such an event:
 ```json
 {
@@ -53,19 +107,46 @@ Example of such an event:
   }
 }
 ```
+###### PaymentStored
+TBD
 
-##### UserCreatedEvent
-TBD (move to a different MS)
+#### Notifications table
+Notifications will be stored in a DynamoDB table.
 
-## Kubernetes cluster
-All the microservices were organized into a Kubernetes cluster.
+ | username | period | base_period | body | published | last_error | retry_count |
+|----------|--------|-------------|------|-----------|------------|-------------|
+| S        | S      | S           | S    | BOOL      | S          | N           |
+
+- username    (_String_)  - TBD
+- period      (_String_)  - TBD
+- base_period (_String_)  - TBD
+- body        (_String_)  - TBD
+- published   (_boolean_) - TBD
+- last_error  (_String_)  - TBD
+- retry_count (_int_)     - TBD
+
+#### Kubernetes microservices
+##### Rationale
+At first all the initial code was to be divided into microservices
+and run in a Kubernetes cluster, but the approach was changed to more serverless-focused.
+The Kubernetes cluster was left as initially prepared (except for the front-end app
+that should be extracted and served from an S3 host with possible CloudFront support).
+
 The whole setup was prepared so that it was easy to run the whole application
 locally, but also the main thought behind the configuration was simplicity.
 An H2 database configured as a part of the cluster was used as a shortcut,
-which some consider to be a bad practice (using default credentials **is** a bad practice).
+which some consider to be a bad practice and in a cloud-based architecture
+it **should** be replaced with a database stored separately.
+In AWS it would be: migration to DynamoDB - preferred as there are no actual relations 
+in the database / Aurora / RDS / EC2. It was left in place as part of 
+the Kubernetes solution - might be considered as a "legacy" part of the system.
 Artemis JMS broker was configured inline in the Kubernetes deployment configuration,
 which was also a way to spend less time on the configuration part.
+Again - in the cloud environment it should be replaced with a solution designed
+to handle messaging. In AWS it would be: SNS / EventBridge / Kinesis / Amazon MQ.
+Since topics are used, SQS would not be suitable.
 
+##### Setup and usage
 All the steps to run the cluster are included in the `scripts/runLocalCluster.sh` file.
 JDK 17, Maven, Docker, Kubernetes, Minikube and Node.js need to be installed.
 
@@ -124,12 +205,12 @@ for given service
 See [kubectl](https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands) 
 and [minikube](https://minikube.sigs.k8s.io/docs/commands/) commands pages for more.
 
-### Recommended reading
+###### Recommended reading
 - https://learnk8s.io/spring-boot-kubernetes-guide
 - https://learnk8s.io/blog/kubectl-productivity
 
-### Pods SSH commands
-#### jms-broker
+##### Pods SSH commands
+###### jms-broker
 
 Send a message:
 ```shell
@@ -172,4 +253,9 @@ broker/bin/artemis producer \
 ```
 
 Check queue state:
-`broker/bin/artemis queue stat --user artemis --password artemis --queueName payment/register/v1`
+```shell
+broker/bin/artemis queue stat \
+--user artemis \
+--password artemis \
+--queueName payment/register/v1
+```
