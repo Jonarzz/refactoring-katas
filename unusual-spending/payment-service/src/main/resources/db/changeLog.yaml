@@ -57,8 +57,8 @@ databaseChangeLog:
                     referencedColumnNames: name
                     nullable: false
               - column:
-                  name: payer_id
-                  type: int
+                  name: payer_username
+                  type: varchar(50)
                   constraints:
                     nullable: false
               - column:
@@ -75,10 +75,10 @@ databaseChangeLog:
             column:
               name: category
         - createIndex:
-            indexName: idx_payment_payer_id
+            indexName: idx_payment_payer_username
             tableName: payment
             column:
-              name: payer_id
+              name: payer_username
         - createIndex:
             indexName: idx_payment_time
             tableName: payment

@@ -23,12 +23,12 @@ class PaymentResourceApiTest {
     // data loaded by Liquibase (see: data/payment.csv in test resources)
 
     @Test
-    void getAllPaymentsForUserId() {
+    void getAllPaymentsForUsername() {
         var response = sendGraphQlRequest(
                 """
                         {
                           "query": "{
-                            userPayments (userId: 2) {
+                            userPayments (username: \\"test_user_2\\") {
                               cost {
                                 amount
                                 currency {
@@ -51,12 +51,12 @@ class PaymentResourceApiTest {
     }
 
     @Test
-    void getAllPaymentsForUserIdThatDoesNotExist() {
+    void getAllPaymentsForUsernameThatDoesNotExist() {
         var response = sendGraphQlRequest(
                 """
                         {
                           "query": "{
-                            userPayments (userId: 123) {
+                            userPayments (username: \\"i do not exist\\") {
                               cost {
                                 amount
                               }
@@ -69,17 +69,17 @@ class PaymentResourceApiTest {
     }
 
     @Test
-    void getPaymentsForUserIdBetweenDates() {
+    void getPaymentsForUsernameBetweenDates() {
         var response = sendGraphQlRequest(
                 """
                         {
                           "variables": {
-                            "userId": 1,
+                            "username": "test_user_1",
                             "from": "2022-05-04T00:00:00+02",
                             "to": "2022-05-11T00:00:00+02"
                           },
-                          "query": "query GetUserPaymentsBetweenDates($userId: BigInteger!, $from: DateTime, $to: DateTime) {
-                            userPayments (userId: $userId, from: $from, to: $to) {
+                          "query": "query GetUserPaymentsBetweenDates($username: String!, $from: DateTime, $to: DateTime) {
+                            userPayments (username: $username, from: $from, to: $to) {
                               id
                               timestamp
                               description
@@ -106,7 +106,7 @@ class PaymentResourceApiTest {
     }
 
     @Test
-    void tryToGetAllPaymentsWithoutUserId() {
+    void tryToGetAllPaymentsWithoutUsername() {
         var response = sendGraphQlRequest(
                 """
                         {
@@ -121,7 +121,7 @@ class PaymentResourceApiTest {
 
         assertErrors(response)
                 .extracting("message")
-                .containsExactly("User ID is required");
+                .containsExactly("Username is required");
     }
 
     @Test

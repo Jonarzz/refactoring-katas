@@ -40,10 +40,10 @@ class PaymentRepositoryTest {
 
         @Test
         void firstPayerInMay() {
-            var payerId = 1L;
+            var payerUsername = "test_user_1";
             var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY), defaultInsertOffset);
 
-            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -58,10 +58,10 @@ class PaymentRepositoryTest {
 
         @Test
         void secondPayerInMay() {
-            var payerId = 2L;
+            var payerUsername = "test_user_2";
             var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
-            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -72,10 +72,10 @@ class PaymentRepositoryTest {
 
         @Test
         void firstPayerInJune() {
-            var payerId = 1L;
+            var payerUsername = "test_user_1";
             var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE), defaultInsertOffset);
 
-            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -91,10 +91,10 @@ class PaymentRepositoryTest {
 
         @Test
         void secondPayerInJune() {
-            var payerId = 2L;
+            var payerUsername = "test_user_2";
             var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
-            var results = repository.getPaymentDetailsBetween(payerId, timespan.start(), timespan.end());
+            var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 
             assertThat(results)
                     .extracting("category.name", "cost.amount", "cost.currency")
@@ -110,7 +110,7 @@ class PaymentRepositoryTest {
 
         // in case of any errors GetPayerPaymentsBetween tests should be fixed first
 
-        private long payerId = 100;
+        private String payerUsername = "saving_user";
 
         @Test
         void save_currencyAndCategoryAlreadyExistInDatabase_withoutProvidingTimestamp() {
@@ -157,7 +157,7 @@ class PaymentRepositoryTest {
             var details = new PaymentDetails(UUID.randomUUID(),
                                              Category.named(categoryName),
                                              Cost.create(amount, currency));
-            var payment = new PaymentRegisteredEvent(payerId, details);
+            var payment = new PaymentRegisteredEvent(payerUsername, details);
             var timeBefore = OffsetDateTime.now();
 
             assertThat(repository.save(payment))
@@ -167,7 +167,7 @@ class PaymentRepositoryTest {
                     .as("Second save")
                     .isFalse();
 
-            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, OffsetDateTime.now());
+            var saved = repository.getPaymentDetailsBetween(payerUsername, timeBefore, OffsetDateTime.now());
             assertThat(saved)
                     .singleElement()
                     .returns(categoryName, result -> result.category().getName())
@@ -185,12 +185,12 @@ class PaymentRepositoryTest {
                                              Cost.create(amount, currency),
                                              time);
             var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
-            var payment = new PaymentRegisteredEvent(payerId, details);
+            var payment = new PaymentRegisteredEvent(payerUsername, details);
 
             repository.save(payment);
 
             var timeAfter = shiftedOrNow(time, toShift -> toShift.plusSeconds(1));
-            var saved = repository.getPaymentDetailsBetween(payerId, timeBefore, timeAfter);
+            var saved = repository.getPaymentDetailsBetween(payerUsername, timeBefore, timeAfter);
             assertThat(saved)
                     .extracting("category.name", "cost.amount", "cost.currency")
                     .containsExactly(

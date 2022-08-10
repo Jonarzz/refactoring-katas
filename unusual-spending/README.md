@@ -96,7 +96,7 @@ as it doesn't seem to be necessary.
 #### PaymentStored
 ```json
 {
-  "payerName": "test_user",
+  "payerUsername": "test_user",
   "timestamp": "2022-07-02T12:13:49+02"
 }
 ```
@@ -110,7 +110,7 @@ and saves them in the database for future use.
 Example of such an event:
 ```json
 {
-  "payerName": "test_user",
+  "payerUsername": "test_user",
   "details": {
     "id": "7b8d8c9f-a8fb-486d-9c44-96008b30118e",
     "timestamp": "2022-07-02T12:13:49+02",
@@ -126,7 +126,7 @@ Example of such an event:
 ##### PaymentStored
 ```json
 {
-  "payerName": "test_user",
+  "payerUsername": "test_user",
   "timestamp": "2022-07-02T12:13:49+02",
   "cost": "$12.99"
 }
@@ -249,7 +249,7 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"payerName": "test_user",
+"payerUsername": "test_user",
 "details": {
   "id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
   "category": "groceries",
@@ -267,7 +267,7 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"payerName": "test_user",
+"payerUsername": "test_user",
 "details": {
   "id": "ba1d8c9f-c7fb-486d-9c44-98008b30117c",
   "timestamp": "2022-07-27T16:13:21+02",
@@ -290,7 +290,7 @@ broker/bin/artemis queue stat \
 ```
 
 ## TODO list
-- :memo: change `payerId` to `userId` in payment-service
+- :white_check_mark: change `payerId` to `payerUsername` in the payment-service module
 - :memo: rename module payment-service to payment-storage-service
 - :memo: emit PaymentStored event from payment-storage-service
 - :memo: transform the code to comply with hexagonal architecture better

@@ -33,7 +33,7 @@ class PaymentServiceTest {
 
     static final ValidatorFactory VALIDATOR_FACTORY = Validation.buildDefaultValidatorFactory();
 
-    final long payerId = 1;
+    final String payerUsername = "test_payer";
 
     final PaymentRepository repository = mock(PaymentRepository.class);
     final PaymentService service = new PaymentService(VALIDATOR_FACTORY.getValidator(), repository);
@@ -50,10 +50,10 @@ class PaymentServiceTest {
 
         @Test
         void noPayments() {
-            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
                     .thenReturn(List.of());
 
-            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerUsername, aggregationTimespan);
 
             assertThat(result)
                     .isEmpty();
@@ -66,7 +66,7 @@ class PaymentServiceTest {
                     Category.named("GROCERIES"), usd(17, 33),
                     Category.named("TRAVEL"), usd(1999, 99)
             );
-            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
                     .thenReturn(priceByCategory.entrySet()
                                                .stream()
                                                .map(entry -> new PaymentDetails(randomUUID(),
@@ -74,7 +74,7 @@ class PaymentServiceTest {
                                                                                 entry.getValue()))
                                                .toList());
 
-            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerUsername, aggregationTimespan);
 
             assertThat(result)
                     .containsExactlyInAnyOrderEntriesOf(priceByCategory);
@@ -86,14 +86,14 @@ class PaymentServiceTest {
             Supplier<IntStream> dollarValuesSupplier = () -> IntStream.of(15, 21, 90, 123);
             var dollarsSum = dollarValuesSupplier.get()
                                                  .sum();
-            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
                     .thenReturn(dollarValuesSupplier.get()
                                                     .mapToObj(dollars -> new PaymentDetails(randomUUID(),
                                                                                             category,
                                                                                             usd(dollars, 0)))
                                                     .toList());
 
-            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerUsername, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(entry(category, usd(dollarsSum, 0)));
@@ -103,7 +103,7 @@ class PaymentServiceTest {
         void multiplePaymentsInMultipleCategories() {
             var categorySummingUpTo4 = Category.named("RESTAURANTS");
             var categorySummingUpTo2 = Category.named("GROCERIES");
-            when(repository.getPaymentDetailsBetween(eq(payerId), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
                     .thenReturn(List.of(
                             new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0)),
                             new PaymentDetails(randomUUID(), categorySummingUpTo2, usd(1, 0)),
@@ -113,7 +113,7 @@ class PaymentServiceTest {
                             new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0))
                     ));
 
-            var result = service.aggregateTotalUserExpensesBy(category(), payerId, aggregationTimespan);
+            var result = service.aggregateTotalUserExpensesBy(category(), payerUsername, aggregationTimespan);
 
             assertThat(result)
                     .containsOnly(
@@ -139,27 +139,27 @@ class PaymentServiceTest {
             assertThatThrownBy(methodUnderTest)
                     .hasMessageStartingWith("Event validation failed. ")
                     .hasMessageContainingAll(
-                            "Payer ID cannot be null. ",
+                            "Payer username cannot be blank. ",
                             "Payment details cannot be null. "
                     );
         }
 
         @Test
-        void eventWithNegativePayerId() {
-            var negativePayerId = -5L;
+        void eventWithBlankPayerUsername() {
+            var payerUsername = "   ";
             var details = new PaymentDetails(
                     id,
                     Category.named("groceries"),
                     Cost.usd(11.05)
             );
-            var event = new PaymentRegisteredEvent(negativePayerId, details);
+            var event = new PaymentRegisteredEvent(payerUsername, details);
 
             ThrowableAssert.ThrowingCallable methodUnderTest = () -> service.save(event);
 
             assertThatThrownBy(methodUnderTest)
                     .hasMessageStartingWith("Event validation failed. ")
                     .hasMessageContainingAll(
-                            "ID should be a positive integer. "
+                            "Payer username cannot be blank. "
                     );
         }
 
@@ -171,7 +171,7 @@ class PaymentServiceTest {
                     Category.named("travel"),
                     Cost.usd(12.35)
             );
-            var event = new PaymentRegisteredEvent(payerId, paymentDetails);
+            var event = new PaymentRegisteredEvent(payerUsername, paymentDetails);
 
             service.save(event);
 
@@ -189,7 +189,7 @@ class PaymentServiceTest {
                     timestamp,
                     "Payment description"
             );
-            var event = new PaymentRegisteredEvent(payerId, paymentDetails);
+            var event = new PaymentRegisteredEvent(payerUsername, paymentDetails);
 
             service.save(event);
 

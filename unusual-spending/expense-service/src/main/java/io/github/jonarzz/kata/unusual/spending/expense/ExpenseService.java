@@ -18,10 +18,10 @@ public class ExpenseService {
 
     public Collection<UnusualExpense> calculateUnusualExpenses(TimestampedExpenseComparisonCriteria criteria) {
         LOG.debugf("Calculating unusual expenses based on %s", criteria);
-        var userId = criteria.userId();
+        var username = criteria.username();
         var policy = criteria.groupingPolicy();
-        var baseExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, criteria.baseTimespan());
-        var comparedExpenses = paymentService.aggregateTotalUserExpensesBy(policy, userId, criteria.comparedTimespan());
+        var baseExpenses = paymentService.aggregateTotalUserExpensesBy(policy, username, criteria.baseTimespan());
+        var comparedExpenses = paymentService.aggregateTotalUserExpensesBy(policy, username, criteria.comparedTimespan());
         Collection<UnusualExpense> paymentsMatchingThreshold = new HashSet<>();
         for (var categoryToCurrentExpense : comparedExpenses.entrySet()) {
             var category = categoryToCurrentExpense.getKey();
@@ -31,7 +31,7 @@ public class ExpenseService {
                                        .comparedTo(base)
                                        .satisfiesThreshold(criteria.threshold())) {
                 var expense = new UnusualExpense(category, current);
-                LOG.debugf("Found %s for user with ID %s", expense, userId);
+                LOG.debugf("Found %s for user %s", expense, username);
                 paymentsMatchingThreshold.add(expense);
             }
         }

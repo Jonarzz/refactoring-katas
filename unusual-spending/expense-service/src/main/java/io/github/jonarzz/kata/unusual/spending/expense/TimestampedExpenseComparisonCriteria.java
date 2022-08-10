@@ -10,18 +10,18 @@ public class TimestampedExpenseComparisonCriteria implements
         TimestampedExpenseComparisonCriteriaApi.WithGrouping,
         TimestampedExpenseComparisonCriteriaApi.WithBaseTimespan {
 
-    private long userId;
+    private String username;
     private AggregationTimespan comparedTimespan;
     private AggregationPolicy<Category> aggregationPolicy;
     private AggregationTimespan baseTimespan;
     private SpendingThreshold threshold;
 
-    private TimestampedExpenseComparisonCriteria(long userId) {
-        this.userId = userId;
+    private TimestampedExpenseComparisonCriteria(String username) {
+        this.username = username;
     }
 
-    public static TimestampedExpenseComparisonCriteriaApi.WithId forUserId(long userId) {
-        return new TimestampedExpenseComparisonCriteria(userId);
+    public static TimestampedExpenseComparisonCriteriaApi.WithId forUsername(String username) {
+        return new TimestampedExpenseComparisonCriteria(username);
     }
 
     @Override
@@ -51,11 +51,11 @@ public class TimestampedExpenseComparisonCriteria implements
     @Override
     public String toString() {
         return "TimestampedExpenseComparisonCriteria{userId=%s, comparedTimespan=%s, aggregationPolicy=%s, baseTimespan=%s, threshold=%s}"
-                .formatted(userId, comparedTimespan, aggregationPolicy, baseTimespan, threshold);
+                .formatted(username, comparedTimespan, aggregationPolicy, baseTimespan, threshold);
     }
 
-    long userId() {
-        return userId;
+    String username() {
+        return username;
     }
 
     AggregationTimespan comparedTimespan() {

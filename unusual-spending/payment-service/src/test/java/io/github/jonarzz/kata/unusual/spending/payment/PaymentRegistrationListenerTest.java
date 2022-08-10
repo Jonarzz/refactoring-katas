@@ -3,9 +3,10 @@ package io.github.jonarzz.kata.unusual.spending.payment;
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.IntStream.rangeClosed;
 import static javax.jms.JMSContext.AUTO_ACKNOWLEDGE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.LONG;
 
 import io.github.jonarzz.kata.unusual.spending.money.Cost;
 import io.github.jonarzz.kata.unusual.spending.money.Currency;
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -38,6 +38,7 @@ class PaymentRegistrationListenerTest {
     private static final String REGISTER_PAYMENT_TOPIC_NAME = "payment/register/v1";
 
     private static final int SINGLE_RUN_EVENT_COUNT = 10;
+    private static final String USERNAME_PREFIX = "payer-";
 
     @Inject
     TestJmsServer testJmsServer;
@@ -64,7 +65,7 @@ class PaymentRegistrationListenerTest {
     @RepeatedTest(5)
     void currencyAsStringValue() {
         var currencyJsonValue = "\"" + MessageData.CURRENCY + "\"";
-        sendEvents(payerId -> createMessageWithExplicitCurrencyJsonPart(payerId, currencyJsonValue));
+        sendEvents(payerUsername -> createMessageWithExplicitCurrencyJsonPart(payerUsername, currencyJsonValue));
 
         paymentService.awaitForEvents(1, SECONDS);
 
@@ -79,7 +80,7 @@ class PaymentRegistrationListenerTest {
                   "languageTag": "%s"
                 }""".formatted(MessageData.CURRENCY,
                                MessageData.LANGUAGE_TAG);
-        sendEvents(payerId -> createMessageWithExplicitCurrencyJsonPart(payerId, currencyJson));
+        sendEvents(payerUsername -> createMessageWithExplicitCurrencyJsonPart(payerUsername, currencyJson));
 
         paymentService.awaitForEvents(1, SECONDS);
 
@@ -143,7 +144,7 @@ class PaymentRegistrationListenerTest {
                     }"""
     })
     void invalidMessage(String message) {
-        sendEvents(payerId -> message);
+        sendEvents(payerUsername -> message);
 
         // TODO find a way to spy on ObjectMapper in Quarkus tests to handle this with a latch
         //      don't want to waste any more time on it now
@@ -153,21 +154,21 @@ class PaymentRegistrationListenerTest {
                 .isEmpty();
     }
 
-    private static void sendEvents(Function<Integer, String> messageForIterationCreator) {
+    private static void sendEvents(Function<String, String> messageForIterationCreator) {
         try (var connectionFactory = new ActiveMQConnectionFactory(Config.URL, Producer.USERNAME, Producer.PASSWORD);
              var context = connectionFactory.createContext(AUTO_ACKNOWLEDGE)) {
             var paymentDestination = context.createTopic(REGISTER_PAYMENT_TOPIC_NAME);
             var producer = context.createProducer();
-            for (int payerId = 1; payerId <= SINGLE_RUN_EVENT_COUNT; payerId++) {
-                producer.send(paymentDestination, messageForIterationCreator.apply(payerId));
+            for (int payerIndex = 1; payerIndex <= SINGLE_RUN_EVENT_COUNT; payerIndex++) {
+                producer.send(paymentDestination, messageForIterationCreator.apply(USERNAME_PREFIX + payerIndex));
             }
         }
     }
 
-    private static String createMessageWithExplicitCurrencyJsonPart(int payerId, String currencyJsonPart) {
+    private static String createMessageWithExplicitCurrencyJsonPart(String payerUsername, String currencyJsonPart) {
         return """
                 {
-                  "payerId": "%s",
+                  "payerUsername": "%s",
                   "details": {
                   "id": "%s",
                     "timestamp": "%s",
@@ -178,7 +179,7 @@ class PaymentRegistrationListenerTest {
                     }
                   }
                 }
-                """.formatted(payerId,
+                """.formatted(payerUsername,
                               MessageData.ID,
                               MessageData.TIMESTAMP_STRING,
                               MessageData.CATEGORY,
@@ -202,9 +203,10 @@ class PaymentRegistrationListenerTest {
                                 .extracting(Cost::getCurrency)
                                 .returns(MessageData.CURRENCY, Currency::alphaCode)
                                 .returns(MessageData.LOCALE, Currency::locale))
-                        .extracting(PaymentRegisteredEvent::payerId)
-                        .asInstanceOf(LONG)
-                        .isBetween(1L, (long) SINGLE_RUN_EVENT_COUNT));
+                        .extracting(PaymentRegisteredEvent::payerUsername)
+                        .isIn(rangeClosed(1, SINGLE_RUN_EVENT_COUNT)
+                                      .mapToObj(index -> USERNAME_PREFIX + index)
+                                      .collect(toSet())));
     }
 
     public static class ConfigProfile implements QuarkusTestProfile {
@@ -235,10 +237,6 @@ class PaymentRegistrationListenerTest {
         static final String CURRENCY = "USD";
         static final String LANGUAGE_TAG = "en-US";
         static final Locale LOCALE = Locale.US;
-    }
-
-    static class PreventExecutionOnSetupFailureExtension implements LifecycleMethodExecutionExceptionHandler {
-
     }
 
 }

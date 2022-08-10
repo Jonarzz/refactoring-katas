@@ -25,11 +25,11 @@ class PaymentRepository {
         this.modifyingAdapter = modifyingAdapter;
     }
 
-    Collection<PaymentDetails> getPaymentDetailsBetween(Long payerId, OffsetDateTime from, OffsetDateTime to) {
+    Collection<PaymentDetails> getPaymentDetailsBetween(String payerUsername, OffsetDateTime from, OffsetDateTime to) {
         var sqlTemplate = "SELECT p.id, p.category, p.amount, c.alpha_code, c.language_tag, p.description, p.time "
                          + "FROM payment p "
                          + "JOIN currency c ON p.currency = c.alpha_code "
-                         + "WHERE p.payer_id = ?";
+                         + "WHERE p.payer_username = ?";
         if (from != null) {
             sqlTemplate += " AND p.time >= ?";
         }
@@ -37,7 +37,7 @@ class PaymentRepository {
             sqlTemplate += " AND p.time <= ?";
         }
         return queryingAdapter.fetch(new PaymentDetailsMapper(),
-                                     sqlTemplate, payerId, toStringAtSystemOffset(from), toStringAtSystemOffset(to));
+                                     sqlTemplate, payerUsername, toStringAtSystemOffset(from), toStringAtSystemOffset(to));
     }
 
     Optional<PaymentDetails> getPaymentDetails(UUID paymentId) {
@@ -51,7 +51,7 @@ class PaymentRepository {
     }
 
     boolean save(PaymentRegisteredEvent paymentEvent) {
-        var payerId = paymentEvent.payerId();
+        var payerUsername = paymentEvent.payerUsername();
         var details = paymentEvent.details();
         var eventId = details.id();
         if (queryingAdapter.atLeastOneExists("SELECT 1 FROM payment WHERE id = ?", eventId)) {
@@ -65,9 +65,9 @@ class PaymentRepository {
         var time = toStringAtSystemOffset(Optional.ofNullable(details.timestamp())
                                                   .orElseGet(OffsetDateTime::now));
         modifyingAdapter.modify("INSERT INTO payment "
-                                + "(id, payer_id, amount, currency, category, time, description) "
+                                + "(id, payer_username, amount, currency, category, time, description) "
                                 + "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                                eventId, payerId, cost.getAmount(), currency.alphaCode(), category, time, details.description());
+                                eventId, payerUsername, cost.getAmount(), currency.alphaCode(), category, time, details.description());
         return true;
     }
 

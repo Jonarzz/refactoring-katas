@@ -1,7 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
 import static io.github.jonarzz.kata.unusual.spending.expense.MultiplicationThreshold.percentage;
-import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparisonCriteria.forUserId;
+import static io.github.jonarzz.kata.unusual.spending.expense.TimestampedExpenseComparisonCriteria.forUsername;
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.reverseOrder;
 
@@ -31,21 +31,21 @@ public class UnusualExpensesNotificationService {
         this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
-    public Optional<String> createNotificationBody(long userId) {
-        LOG.debugf("Creating notification body for user with ID %s", userId);
+    public Optional<String> createNotificationBody(String username) {
+        LOG.debugf("Creating notification body for user %s", username);
         var currentMonth = YearMonth.now();
         var previousMonth = currentMonth.minusMonths(1);
-        var unusualExpenses = expenseService.calculateUnusualExpenses(forUserId(userId)
+        var unusualExpenses = expenseService.calculateUnusualExpenses(forUsername(username)
                                                                               .aggregateExpenses(AggregationTimespan.of(currentMonth))
                                                                               .groupedBy(AggregationPolicy.category())
                                                                               .comparedToAggregatedExpenses(AggregationTimespan.of(previousMonth))
                                                                               .increasedByAtLeast(percentage(150)));
         if (unusualExpenses.isEmpty()) {
-            LOG.debugf("Unusual expenses not found for user with ID %s", userId);
+            LOG.debugf("Unusual expenses not found for user %s", username);
             return Optional.empty();
         }
-        LOG.debugf("Found %s unusual expenses for user with ID %s - building notification message",
-                   unusualExpenses.size(), userId);
+        LOG.debugf("Found %s unusual expenses for user %s - building notification message",
+                   unusualExpenses.size(), username);
         return Optional.of(buildNotification(unusualExpenses));
     }
 

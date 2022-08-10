@@ -27,8 +27,8 @@ export interface Payment {
 }
 
 const USER_PAYMENTS_QUERY = gql`
-query GetUserPayments($userId: BigInteger!) {
-  userPayments (userId: $userId) {
+query GetUserPayments($username: String!) {
+  userPayments (username: $username) {
     id
     cost {
       amount
@@ -50,17 +50,17 @@ const mapPayments = (result: ApolloQueryResult<UserPaymentsResponse>): Payment[]
     });
   });
 
-export const PaymentsTable = ({userId}: {userId: number}) => {
+export const PaymentsTable = ({username}: {username: string}) => {
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
 
-  const getUserPayments = (userId: number, force = false) => {
+  const getUserPayments = (username: string, force = false) => {
     setLoading(true);
     // TODO add dates to the query
     // TODO pagination
-    runQuery(USER_PAYMENTS_QUERY, {userId}, force)
+    runQuery(USER_PAYMENTS_QUERY, {username}, force)
       .then(result => {
         setPayments(mapPayments(result));
         setError(undefined);
@@ -73,7 +73,7 @@ export const PaymentsTable = ({userId}: {userId: number}) => {
   };
 
   useEffect(() => {
-    getUserPayments(userId);
+    getUserPayments(username);
   }, []);
 
   if (loading) {
@@ -98,7 +98,7 @@ export const PaymentsTable = ({userId}: {userId: number}) => {
 
   return (
     <div>
-      <Button onClick={() => getUserPayments(userId, true)}>Reload</Button>
+      <Button onClick={() => getUserPayments(username, true)}>Reload</Button>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -119,5 +119,5 @@ export const PaymentsTable = ({userId}: {userId: number}) => {
 };
 
 PaymentsTable.propTypes = {
-  userId: PropTypes.number.isRequired
+  username: PropTypes.number.isRequired
 };

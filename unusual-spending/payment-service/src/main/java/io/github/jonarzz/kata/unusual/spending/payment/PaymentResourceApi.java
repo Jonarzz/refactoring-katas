@@ -21,13 +21,13 @@ public class PaymentResourceApi {
 
     @Query
     @Description("Get payments of given user")
-    public Collection<PaymentDetails> userPayments(@Name("userId") Long userId,
+    public Collection<PaymentDetails> userPayments(@Name("username") String username,
                                                    @Name("from") OffsetDateTime from,
                                                    @Name("to") OffsetDateTime to) {
-        if (userId == null) {
-            throw new BadRequestException("User ID is required");
+        if (username == null) {
+            throw new BadRequestException("Username is required");
         }
-        return paymentService.getUserPayments(userId, from, to);
+        return paymentService.getUserPayments(username, from, to);
     }
 
     @Query

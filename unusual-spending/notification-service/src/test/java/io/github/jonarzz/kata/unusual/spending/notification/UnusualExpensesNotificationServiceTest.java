@@ -18,7 +18,7 @@ class UnusualExpensesNotificationServiceTest {
     void noUnusualExpenses() {
         var notificationService = createServiceReturning(Map.of());
 
-        var body = notificationService.createNotificationBody(1);
+        var body = notificationService.createNotificationBody("user_1");
 
         assertThat(body)
                 .isEmpty();
@@ -30,7 +30,7 @@ class UnusualExpensesNotificationServiceTest {
                 Category.named("GOLF"), usd(123, 85)
         ));
 
-        var body = notificationService.createNotificationBody(1);
+        var body = notificationService.createNotificationBody("user_1");
 
         assertThat(body)
                 .hasValue("""
@@ -52,7 +52,7 @@ class UnusualExpensesNotificationServiceTest {
                 Category.named("enTERTAINment"), usd(257, 13)
         ));
 
-        var body = notificationService.createNotificationBody(1);
+        var body = notificationService.createNotificationBody("user_1");
 
         assertThat(body)
                 .hasValue("""

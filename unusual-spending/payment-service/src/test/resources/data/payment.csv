@@ -1,14 +1,14 @@
-id,payer_id,amount,currency,category,description,time
-c1c3856a-0e7e-42c1-a61b-e7670c538318,1,190.99,USD,travel,Some test description,2022-05-01T12:00:01
-2a3dff5e-74ac-4da4-a867-9d12dcd23cd3,1,11.99,USD,groceries,Other test description,2022-05-04T07:11:33
-5ec1a062-b2db-41b9-9591-adc68784eef7,1,24.99,USD,golf,Different test description,2022-05-21T21:13:52
-a3737355-2511-4753-98f8-9a8f86fa88ad,1,89.23,USD,groceries,Some test description,2022-05-18T16:14:37
-799b3a61-a9df-4a7a-b6d9-e66fc9a096bf,2,22.71,USD,groceries,Some test description,2022-05-26T15:09:01.045
-e37e9aea-98d7-4d3a-9db3-eec70f246300,1,277.55,USD,travel,Some test description,2022-05-31T11:59:59
-a20571ef-ab23-42d9-a182-f99ce5db3727,1,17.05,USD,groceries,Some test description,2022-06-01T12:00:01
-106bc693-4bd2-4ab4-ad87-e895b46c0d7c,1,700.59,USD,travel,Some test description,2022-06-02T20:11:24
-02b8f072-da6a-41ed-81f3-2af1f8b43f24,2,133.99,USD,travel,Some test description,2022-06-03T10:17:39
-db01d3fd-7fdf-425f-af20-ca8f2907060b,1,29.11,USD,groceries,Some test description,2022-06-04T19:07:54
-4a04dc1a-df75-43c6-997e-3ddf782b9f4c,1,100.03,USD,travel,Some test description,2022-06-13T11:07:54
-36490aee-80b5-484c-b6cd-95c1e6af34be,1,34.55,USD,restaurants,Some test description,2022-06-27T19:57:33
-b8690ab6-94c3-4cd1-a6d6-59531f101b3d,1,10.00,USD,restaurants,Last test description,2022-06-27T19:57:51
+id,payer_username,amount,currency,category,description,time
+c1c3856a-0e7e-42c1-a61b-e7670c538318,test_user_1,190.99,USD,travel,Some test description,2022-05-01T12:00:01
+2a3dff5e-74ac-4da4-a867-9d12dcd23cd3,test_user_1,11.99,USD,groceries,Other test description,2022-05-04T07:11:33
+5ec1a062-b2db-41b9-9591-adc68784eef7,test_user_1,24.99,USD,golf,Different test description,2022-05-21T21:13:52
+a3737355-2511-4753-98f8-9a8f86fa88ad,test_user_1,89.23,USD,groceries,Some test description,2022-05-18T16:14:37
+799b3a61-a9df-4a7a-b6d9-e66fc9a096bf,test_user_2,22.71,USD,groceries,Some test description,2022-05-26T15:09:01.045
+e37e9aea-98d7-4d3a-9db3-eec70f246300,test_user_1,277.55,USD,travel,Some test description,2022-05-31T11:59:59
+a20571ef-ab23-42d9-a182-f99ce5db3727,test_user_1,17.05,USD,groceries,Some test description,2022-06-01T12:00:01
+106bc693-4bd2-4ab4-ad87-e895b46c0d7c,test_user_1,700.59,USD,travel,Some test description,2022-06-02T20:11:24
+02b8f072-da6a-41ed-81f3-2af1f8b43f24,test_user_2,133.99,USD,travel,Some test description,2022-06-03T10:17:39
+db01d3fd-7fdf-425f-af20-ca8f2907060b,test_user_1,29.11,USD,groceries,Some test description,2022-06-04T19:07:54
+4a04dc1a-df75-43c6-997e-3ddf782b9f4c,test_user_1,100.03,USD,travel,Some test description,2022-06-13T11:07:54
+36490aee-80b5-484c-b6cd-95c1e6af34be,test_user_1,34.55,USD,restaurants,Some test description,2022-06-27T19:57:33
+b8690ab6-94c3-4cd1-a6d6-59531f101b3d,test_user_1,10.00,USD,restaurants,Last test description,2022-06-27T19:57:51

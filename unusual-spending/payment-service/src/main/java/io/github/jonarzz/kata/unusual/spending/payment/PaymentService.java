@@ -31,19 +31,19 @@ public class PaymentService {
 
     // TODO default visibility after moving all modules to MS
     public <T> Map<T, Cost> aggregateTotalUserExpensesBy(AggregationPolicy<T> policy,
-                                                         Long userId, AggregationTimespan timespan) {
-        LOG.debugf("Aggregating total user expenses with %s policy for user with ID %s in %s",
-                   policy, userId, timespan);
-        return paymentRepository.getPaymentDetailsBetween(userId, timespan.start(), timespan.end())
+                                                         String username, AggregationTimespan timespan) {
+        LOG.debugf("Aggregating total user expenses with %s policy for user %s in %s",
+                   policy, username, timespan);
+        return paymentRepository.getPaymentDetailsBetween(username, timespan.start(), timespan.end())
                                 .stream()
                                 .collect(toMap(policy,
                                                PaymentDetails::cost,
                                                Cost::add));
     }
 
-    Collection<PaymentDetails> getUserPayments(long userId, OffsetDateTime from, OffsetDateTime to) {
-        LOG.debugf("Retrieving payments of user with ID: %s between %s and %s", userId, from, to);
-        return paymentRepository.getPaymentDetailsBetween(userId, from, to);
+    Collection<PaymentDetails> getUserPayments(String username, OffsetDateTime from, OffsetDateTime to) {
+        LOG.debugf("Retrieving payments of user %s between %s and %s", username, from, to);
+        return paymentRepository.getPaymentDetailsBetween(username, from, to);
     }
 
     Optional<PaymentDetails> getPaymentDetails(UUID paymentId) {

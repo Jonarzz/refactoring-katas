@@ -9,17 +9,35 @@ enum Operation {
 }
 
 interface Variables {
-  readonly userId?: number,
+  readonly username?: string,
   readonly paymentId?: string
 }
 
 interface GraphqlStub {
   readonly operationName: Operation,
   readonly variables: Variables,
+  readonly queryMatchers: RegExp[],
   readonly responseCode?: number,
   readonly response?: UserPaymentsResponse | PaymentDetailsResponse,
   readonly responseDelayMs?: number
 }
+
+const UserPaymentsStubBase: GraphqlStub = {
+  operationName: Operation.GET_USER_PAYMENTS,
+  queryMatchers: [
+    '\\(\\$username: String!',
+    'userPayments ?\\(username: \\$username',
+  ].map(exp => new RegExp(exp)),
+  variables: {}
+};
+const PaymentDetailsStubBase: GraphqlStub = {
+  operationName: Operation.GET_PAYMENT_DETAILS,
+  queryMatchers: [
+    '\\(\\$paymentId: String!\\)',
+    'paymentDetails ?\\(paymentId: \\$paymentId\\)'
+  ].map(exp => new RegExp(exp)),
+  variables: {}
+};
 
 let i = 1;
 const createPayment = (amount: number, currency: string, id = ('payment-id-' + i++)): ResponsePayment => ({
@@ -37,49 +55,90 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
     method: 'POST',
     url: 'http://localhost/api/payment/graphql',
   }, req => {
-    stubs.forEach(stub => {
-      const {operationName, variables} = req.body;
-      if (operationName === stub.operationName) {
-        const notMatchingVariables = Object.entries(stub.variables)
-                                           .filter(([key, value]) => variables[key] !== value);
-        if (notMatchingVariables.length > 0) {
-          console.info(`Skipping stubbing as query variables do not match: 
-                        expected ${notMatchingVariables} in ${JSON.stringify(variables)}`);
-          return;
-        }
-        req.reply({
-          delay: stub.responseDelayMs || 0,
-          statusCode: stub.responseCode || 200,
-          body: {
-            data: stub.response,
-          },
-        });
+    const {operationName, variables, query} = req.body;
+    const matchingStubs = stubs.filter(stub => {
+      if (operationName !== stub.operationName) {
+        return false;
       }
+      const queryMismatches = stub.queryMatchers.filter(matcher => !matcher.exec(query));
+      if (queryMismatches.length > 0) {
+        console.info(`Skipping stubbing as query: ${query} does not match expectations: ${queryMismatches}`);
+        return false;
+      }
+      const notMatchingVariables = Object.entries(stub.variables)
+                                         .filter(([key, value]) => variables[key] !== value);
+      if (notMatchingVariables.length > 0) {
+        console.info(`Skipping stubbing as query variables do not match: 
+                      expected ${notMatchingVariables} in ${JSON.stringify(variables)}`);
+        return false;
+      }
+      req.reply({
+        delay: stub.responseDelayMs || 0,
+        statusCode: stub.responseCode || 200,
+        body: {
+          data: stub.response,
+        },
+      });
+      return true;
     });
+    if (matchingStubs.length === 0) {
+      throw `No stub matching ${operationName} operation found!\n
+             Variables: ${JSON.stringify(variables)}\n
+             Query:\n${query}`;
+    }
   });
 };
+
+const commands: any[] = [];
+
+Cypress.on('test:after:run', (attributes) => {
+  /* eslint-disable no-console */
+  console.log('Test "%s" has finished in %dms',
+    attributes.title, attributes.duration)
+  console.table(commands)
+  commands.length = 0
+})
+
+Cypress.on('command:start', (c) => {
+  commands.push({
+    name: c.attributes.name,
+    started: +new Date(),
+  })
+})
+
+Cypress.on('command:end', (c) => {
+  const lastCommand = commands[commands.length - 1]
+
+  if (lastCommand.name !== c.attributes.name) {
+    throw new Error('Last command is wrong')
+  }
+
+  lastCommand.endedAt = +new Date()
+  lastCommand.elapsed = lastCommand.endedAt - lastCommand.started
+})
+
 
 describe('user payments table', () => {
 
   it('should display empty table if no result is found', () => {
-    const userId = 1;
+    const username = 'user-1';
     interceptApiCall([{
-      operationName: Operation.GET_USER_PAYMENTS,
-      variables: {userId},
+      ...UserPaymentsStubBase,
+      variables: {username},
       response: {userPayments: []},
     }]);
 
-    mount(<PaymentsTable userId={userId}/>);
+    mount(<PaymentsTable username={username}/>);
 
     cy.get('div')
       .contains('No payments found');
   });
 
   it('should display table header', () => {
-    const userId = 2;
+    const username = 'user-2';
     interceptApiCall([{
-      operationName: Operation.GET_USER_PAYMENTS,
-      variables: {userId},
+      ...UserPaymentsStubBase,
+      variables: {username},
       response: {
         userPayments: [
           createPayment(1.99, 'USD')
@@ -87,20 +146,20 @@ describe('user payments table', () => {
       },
     }]);
 
-    mount(<PaymentsTable userId={userId}/>);
+    mount(<PaymentsTable username={username}/>);
 
     const expectedHeaderCells = ['Amount', 'Currency'];
     cy.get('table > thead > tr > th:not([data-test-ignore])')
-      .each((cell, idx) => cy.wrap(cell).should('have.text', expectedHeaderCells[idx]));
+      .each((cell, idx) => expect(cell).text(expectedHeaderCells[idx]));
   });
 
   it('should display table with returned results', () => {
-    const userId = 3,
+    const username = 'user-3',
       firstAmount = 12.35, firstCurrency = 'USD',
       secondAmount = 123.99, secondCurrency = 'PLN';
     interceptApiCall([{
-      operationName: Operation.GET_USER_PAYMENTS,
-      variables: {userId},
+      ...UserPaymentsStubBase,
+      variables: {username},
       response: {
         userPayments: [
           createPayment(firstAmount, firstCurrency),
@@ -108,41 +167,41 @@ describe('user payments table', () => {
       },
     }]);
 
-    mount(<PaymentsTable userId={userId}/>);
+    mount(<PaymentsTable username={username}/>);
 
     const expectedRows = [
       firstAmount, firstCurrency,
       '', // hidden expandable row
       secondAmount, secondCurrency,
       '', // hidden expandable row
-    ];
+    ].map(String);
     cy.get('table > tbody > tr > td:not([data-test-ignore])')
-      .each((cell, idx) => cy.wrap(cell).should('have.text', expectedRows[idx]));
+      .each((cell, idx) => expect(cell).text(expectedRows[idx]));
   });
 
   it('should display a loader while waiting for response', () => {
-    const userId = 4;
+    const username = 'user-4';
     interceptApiCall([{
-      operationName: Operation.GET_USER_PAYMENTS,
-      variables: {userId},
+      ...UserPaymentsStubBase,
+      variables: {username},
       response: {userPayments: []},
     }]);
 
-    mount(<PaymentsTable userId={userId}/>);
+    mount(<PaymentsTable username={username}/>);
 
     cy.get('circle')
       .should('be.visible');
   });
 
   it('should display a user-friendly message if an error occurs', () => {
-    const userId = 100;
+    const username = 'user-100';
     interceptApiCall([{
-      operationName: Operation.GET_USER_PAYMENTS,
-      variables: {userId},
+      ...UserPaymentsStubBase,
+      variables: {username},
       responseCode: 500
     }]);
 
-    mount(<PaymentsTable userId={userId}/>);
+    mount(<PaymentsTable username={username}/>);
 
     cy.get('div')
       .contains('Fetching payments failed. Please, contact with the administrator.');
@@ -156,15 +215,15 @@ describe('user payments table', () => {
     const getProgressBar = () => cy.get('.payment-row__expandable-box > span[role=progressbar]');
 
     it('should display payment details table header', () => {
-      const userId = 5, paymentId = '17f7e88d-9e8a-46d3-80ef-fb283d6ef62c';
+      const username = 'user-5', paymentId = '17f7e88d-9e8a-46d3-80ef-fb283d6ef62c';
       interceptApiCall([{
-        operationName: Operation.GET_USER_PAYMENTS,
-        variables: {userId},
+        ...UserPaymentsStubBase,
+        variables: {username},
         response: {
           userPayments: [createPayment(9.99, 'USD', paymentId)]
         },
       }, {
-        operationName: Operation.GET_PAYMENT_DETAILS,
+        ...PaymentDetailsStubBase,
         variables: {paymentId},
         response: {
           paymentDetails: {
@@ -173,29 +232,27 @@ describe('user payments table', () => {
         }
       }]);
 
-      mount(<PaymentsTable userId={userId}/>);
+      mount(<PaymentsTable username={username}/>);
 
       expandDetailsRow();
       const expectedHeaderCells = [
         'Date', 'Category', 'Description'
       ];
       cy.get('td table > thead > tr > th')
-        .each((cell, idx) => cy.wrap(cell)
-                               .should('have.text', expectedHeaderCells[idx])
-                               .should('be.visible'));
+        .each((cell, idx) => expect(cell).text(expectedHeaderCells[idx]));
     });
 
     it('should display payment details', () => {
-      const userId = 6, paymentId = '91f7e88d-9e8a-46d3-80ef-fb283d6ef62c',
+      const username = 'user-6', paymentId = '91f7e88d-9e8a-46d3-80ef-fb283d6ef62c',
         description = 'Card payment at Wallmart', category = 'groceries';
       interceptApiCall([{
-        operationName: Operation.GET_USER_PAYMENTS,
-        variables: {userId},
+        ...UserPaymentsStubBase,
+        variables: {username},
         response: {
           userPayments: [createPayment(9.99, 'USD', paymentId)]
         },
       }, {
-        operationName: Operation.GET_PAYMENT_DETAILS,
+        ...PaymentDetailsStubBase,
         variables: {paymentId},
         response: {
           paymentDetails: {
@@ -208,31 +265,29 @@ describe('user payments table', () => {
         }
       }]);
 
-      mount(<PaymentsTable userId={userId}/>);
+      mount(<PaymentsTable username={username}/>);
 
       expandDetailsRow();
       const expectedCells = [
         '01/08/2022 11:57:23', category, description
       ];
       cy.get('td table > tbody > tr > td')
-        .each((cell, idx) => cy.wrap(cell)
-                               .should('have.text', expectedCells[idx])
-                               .should('be.visible'));
+        .each((cell, idx) => expect(cell).text(expectedCells[idx]));
       getProgressBar()
         .should('not.exist');
     });
 
     it('should display a loader while waiting for payment details response', () => {
-      const userId = 7,
+      const username = 'user-7',
         paymentId = '11f7e88d-9e8a-46d3-80ef-fb283d6ef62c';
       interceptApiCall([{
-        operationName: Operation.GET_USER_PAYMENTS,
-        variables: {userId},
+        ...UserPaymentsStubBase,
+        variables: {username},
         response: {
           userPayments: [createPayment(9.99, 'USD', paymentId)],
         },
       }, {
-        operationName: Operation.GET_PAYMENT_DETAILS,
+        ...PaymentDetailsStubBase,
         variables: {paymentId},
         responseDelayMs: 500,
         response: {
@@ -242,7 +297,7 @@ describe('user payments table', () => {
         }
       }]);
 
-      mount(<PaymentsTable userId={userId}/>);
+      mount(<PaymentsTable username={username}/>);
 
       expandDetailsRow();
       getProgressBar()
@@ -250,25 +305,25 @@ describe('user payments table', () => {
     });
 
     it('should display a user-friendly message if an error occurs', () => {
-      const userId = 200,
+      const username = 'user-200',
         paymentId = 'payment-with-error';
       interceptApiCall([{
-        operationName: Operation.GET_USER_PAYMENTS,
-        variables: {userId},
+        ...UserPaymentsStubBase,
+        variables: {username},
         response: {
           userPayments: [createPayment(1, 'USD', paymentId)],
         },
       }, {
-        operationName: Operation.GET_PAYMENT_DETAILS,
+        ...PaymentDetailsStubBase,
         variables: {paymentId},
         responseCode: 500
       }]);
 
-      mount(<PaymentsTable userId={userId}/>);
+      mount(<PaymentsTable username={username}/>);
 
       expandDetailsRow();
-      cy.get('.payment-row__expandable-box > div > div')
-        .contains('Fetching payment details failed. Please, contact with the administrator.')
+      cy.get('.payment-row__expandable-box > div > .MuiAlert-message')
+        .should('have.text', 'Fetching payment details failed. Please, contact with the administrator.')
         .should('be.visible');
       getProgressBar()
         .should('not.exist');
