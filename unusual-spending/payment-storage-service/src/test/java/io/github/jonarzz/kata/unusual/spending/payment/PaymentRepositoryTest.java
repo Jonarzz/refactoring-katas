@@ -41,7 +41,7 @@ class PaymentRepositoryTest {
         @Test
         void firstPayerInMay() {
             var payerUsername = "test_user_1";
-            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY), defaultInsertOffset);
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, MAY));
 
             var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 
@@ -73,7 +73,7 @@ class PaymentRepositoryTest {
         @Test
         void firstPayerInJune() {
             var payerUsername = "test_user_1";
-            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE), defaultInsertOffset);
+            var timespan = AggregationTimespan.of(YearMonth.of(2022, JUNE));
 
             var results = repository.getPaymentDetailsBetween(payerUsername, timespan.start(), timespan.end());
 

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -50,7 +51,7 @@ class PaymentServiceTest {
 
         @Test
         void noPayments() {
-            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(LocalDate.class), any()))
                     .thenReturn(List.of());
 
             var result = service.aggregateTotalUserExpensesBy(category(), payerUsername, aggregationTimespan);
@@ -66,7 +67,7 @@ class PaymentServiceTest {
                     Category.named("GROCERIES"), usd(17, 33),
                     Category.named("TRAVEL"), usd(1999, 99)
             );
-            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(LocalDate.class), any()))
                     .thenReturn(priceByCategory.entrySet()
                                                .stream()
                                                .map(entry -> new PaymentDetails(randomUUID(),
@@ -86,7 +87,7 @@ class PaymentServiceTest {
             Supplier<IntStream> dollarValuesSupplier = () -> IntStream.of(15, 21, 90, 123);
             var dollarsSum = dollarValuesSupplier.get()
                                                  .sum();
-            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(LocalDate.class), any()))
                     .thenReturn(dollarValuesSupplier.get()
                                                     .mapToObj(dollars -> new PaymentDetails(randomUUID(),
                                                                                             category,
@@ -103,7 +104,7 @@ class PaymentServiceTest {
         void multiplePaymentsInMultipleCategories() {
             var categorySummingUpTo4 = Category.named("RESTAURANTS");
             var categorySummingUpTo2 = Category.named("GROCERIES");
-            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(), any()))
+            when(repository.getPaymentDetailsBetween(eq(payerUsername), any(LocalDate.class), any()))
                     .thenReturn(List.of(
                             new PaymentDetails(randomUUID(), categorySummingUpTo4, usd(1, 0)),
                             new PaymentDetails(randomUUID(), categorySummingUpTo2, usd(1, 0)),
