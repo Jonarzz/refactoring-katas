@@ -4,10 +4,10 @@
   * [Requirements](#requirements)
     * [Follow-up (over-the-top)](#follow-up--over-the-top-)
       * [Architecture](#architecture)
+        * [Diagrams](#diagrams)
       * [Events](#events)
         * [UserCreated](#usercreated)
         * [PaymentStored](#paymentstored)
-        * [NotificationSent](#notificationsent)
         * [_"Legacy events"_](#_legacy-events_)
           * [PaymentRegistered](#paymentregistered)
           * [PaymentStored](#paymentstored)
@@ -83,12 +83,22 @@ Final system architecture:
 ![Architecture diagram](docs/final-architecture.png)
 
 #### Events
+`NotificationSent` event could also be added, but it's omitted for now
+as it doesn't seem to be necessary.
 ##### UserCreated
-TBD
+```json
+{
+  "username": "test_user",
+  "timestamp": "2022-07-01T10:12:37+02"
+}
+```
 ##### PaymentStored
-TBD
-##### NotificationSent
-TBD
+```json
+{
+  "payerName": "test_user",
+  "timestamp": "2022-07-02T12:13:49+02"
+}
+```
 ##### _"Legacy events"_
 Events sent to the "legacy" JMS broker in the Kubernetes cluster.
 Normally it would be migrated to match other events, but was left in place to resemble
@@ -99,7 +109,7 @@ and saves them in the database for future use.
 Example of such an event:
 ```json
 {
-  "payerId": 1,
+  "payerName": "test_user",
   "details": {
     "id": "7b8d8c9f-a8fb-486d-9c44-96008b30118e",
     "timestamp": "2022-07-02T12:13:49+02",
@@ -113,22 +123,35 @@ Example of such an event:
 }
 ```
 ###### PaymentStored
-TBD
+```json
+{
+  "payerName": "test_user",
+  "timestamp": "2022-07-02T12:13:49+02",
+  "cost": "$12.99"
+}
+```
 
 #### Notifications table
 Notifications will be stored in a DynamoDB table.
 
- | username | period | base_period | body | published | last_error | retry_count |
-|----------|--------|-------------|------|-----------|------------|-------------|
-| S        | S      | S           | S    | BOOL      | S          | N           |
+ | username | period | base_period | body | sent_to | last_error | retry_count |
+|----------|--------|-------------|------|---------|------------|-------------|
+| S        | S      | S           | S    | S       | S          | N           |
 
-- username    (_String_)  - TBD
-- period      (_String_)  - TBD
-- base_period (_String_)  - TBD
-- body        (_String_)  - TBD
-- published   (_boolean_) - TBD
-- last_error  (_String_)  - TBD
-- retry_count (_int_)     - TBD
+- username    (_String_) - username matching the AWS Cognito entry
+- period      (_String_) - dates between which the verified payments are aggregated;
+format: `yyyy-MM-dd - yyyy-MM-dd`
+- base_period (_String_) - dates between which the base payments are aggregated;
+format: `yyyy-MM-dd - yyyy-MM-dd`
+- body        (_String_) - notification body that should be sent
+- sent_to     (_String_) - target to which the notification was sent; 
+according to the initial requirements it's an email address, 
+but could also be for example a phone number;
+empty means notification hasn't been sent yet
+- last_error  (_String_) - information about last error that occurred 
+during notification handling (creation, publication)
+- retry_count (_int_)    - indicates how many times the notification handling was retried
+after an error; should be used to prevent retrying infinitely 
 
 #### Kubernetes microservices
 ##### Rationale
@@ -225,7 +248,7 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"payerId": 1,
+"payerName": "test_user",
 "details": {
   "id": "2aad8c9f-a8fb-486d-9c44-96008b30117b",
   "category": "groceries",
@@ -243,7 +266,7 @@ broker/bin/artemis producer \
 --password artemis \
 --message-count 1 \
 --message '{
-"payerId": 1,
+"payerName": "test_user",
 "details": {
   "id": "ba1d8c9f-c7fb-486d-9c44-98008b30117c",
   "timestamp": "2022-07-27T16:13:21+02",
