@@ -16,8 +16,6 @@ public class ExpenseService {
         this.paymentService = paymentService;
     }
 
-    // TODO web api (REST)
-
     public Collection<UnusualExpense> calculateUnusualExpenses(TimestampedExpenseComparisonCriteria criteria) {
         LOG.debugf("Calculating unusual expenses based on %s", criteria);
         var userId = criteria.userId();

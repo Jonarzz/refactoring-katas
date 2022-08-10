@@ -31,13 +31,6 @@ public class UnusualExpensesNotificationService {
         this.unusualExpenseI18nService = unusualExpenseI18nService;
     }
 
-    // TODO web api (REST)
-    // TODO mail sending package + web api displaying notifications sent (GraphQL)
-    // TODO user package + persistence + web api (GraphQL) + emitting events and receiving in other MS
-    // TODO triggered as a scheduled task (external service)
-    // TODO ELK
-    // TODO Prometheus
-
     public Optional<String> createNotificationBody(long userId) {
         LOG.debugf("Creating notification body for user with ID %s", userId);
         var currentMonth = YearMonth.now();

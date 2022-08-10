@@ -15,7 +15,6 @@
     <url>https://kata-log.rocks/unusual-spending-kata</url>
 
     <modules>
-        <module>user-service</module>
         <module>payment-service</module>
         <module>expense-service</module>
         <module>notification-service</module>
