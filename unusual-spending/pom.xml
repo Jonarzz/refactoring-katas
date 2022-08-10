@@ -71,7 +71,7 @@
     <build>
         <testResources>
             <testResource>
-                <directory>${project.basedir}/src/test/resources</directory>
+                <directory>${project.basedir}/stack-overflow-answer</directory>
             </testResource>
         </testResources>
     </build>
