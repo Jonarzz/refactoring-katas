@@ -62,10 +62,12 @@ Later on as I've caught up more and more and learned about serverless design
 and Amazon Web Services, I've decided to leave the part of the system
 that was already running on Kubernetes 
 (Payment Store service, Artemis JMS broker, H2 database) 
-in place and instead of transforming other parts to microservices in the same K8S cluster
+in place ("legacy") and instead of transforming other parts 
+to microservices in the same K8S cluster
 I redesigned the solution to tackle a serverless approach.
 
-Target system architecture:
+##### Diagrams
+Target system architecture (with "legacy"):
 ![Architecture diagram](docs/architecture.png)
 
 Notification handler (Step Functions):
@@ -75,7 +77,10 @@ Notification handling could also be implemented as separated lambdas based on
 notification-related events, e.g.
 `NotificationCreated`, `NotificationSent`, `NotificationModificationFailed`.
 Such architecture would however be still strictly coupled - 
-step functions seem more explicit in this case. 
+step functions seem more explicit in this case.
+
+Final system architecture:
+![Architecture diagram](docs/final-architecture.png)
 
 #### Events
 ##### UserCreated
