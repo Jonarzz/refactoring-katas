@@ -18,6 +18,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: payment-service
+                name: payment-storage-service
                 port:
                   name: http

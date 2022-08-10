@@ -1,5 +1,5 @@
 target/
-**/payment-service/data/
+**/payment-storage-service/data/
 .idea
 *.iws
 *.iml

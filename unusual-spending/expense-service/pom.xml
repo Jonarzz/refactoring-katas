@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.jonarzz</groupId>
-            <artifactId>payment-service</artifactId>
+            <artifactId>payment-storage-service</artifactId>
         </dependency>
     </dependencies>
 

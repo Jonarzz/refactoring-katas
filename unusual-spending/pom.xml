@@ -15,7 +15,7 @@
     <url>https://kata-log.rocks/unusual-spending-kata</url>
 
     <modules>
-        <module>payment-service</module>
+        <module>payment-storage-service</module>
         <module>expense-service</module>
         <module>notification-service</module>
     </modules>
@@ -30,7 +30,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.github.jonarzz</groupId>
-                <artifactId>payment-service</artifactId>
+                <artifactId>payment-storage-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
