@@ -154,11 +154,11 @@ class PaymentRepositoryTest {
             var categoryName = "golf";
             var amount = 12.34;
             var currency = USD;
+            var timeBefore = OffsetDateTime.now();
             var details = new PaymentDetails(UUID.randomUUID(),
                                              Category.named(categoryName),
                                              Cost.create(amount, currency));
             var payment = new PaymentRegisteredEvent(payerUsername, details);
-            var timeBefore = OffsetDateTime.now();
 
             assertThat(repository.save(payment))
                     .as("First save")
@@ -180,11 +180,11 @@ class PaymentRepositoryTest {
         }
 
         private void saveAndAssert(String categoryName, double amount, Currency currency, OffsetDateTime time) {
+            var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
             var details = new PaymentDetails(UUID.randomUUID(),
                                              Category.named(categoryName),
                                              Cost.create(amount, currency),
                                              time);
-            var timeBefore = shiftedOrNow(time, toShift -> toShift.minusSeconds(1));
             var payment = new PaymentRegisteredEvent(payerUsername, details);
 
             repository.save(payment);

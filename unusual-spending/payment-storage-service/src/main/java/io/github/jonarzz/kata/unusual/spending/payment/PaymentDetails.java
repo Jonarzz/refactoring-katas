@@ -23,6 +23,9 @@ public record PaymentDetails(
         if (cost == null) {
             throw new IllegalArgumentException("Cost cannot bre null");
         }
+        if (timestamp == null) {
+            timestamp = OffsetDateTime.now();
+        }
     }
 
     PaymentDetails(UUID id, Category category, Cost cost, OffsetDateTime timestamp) {

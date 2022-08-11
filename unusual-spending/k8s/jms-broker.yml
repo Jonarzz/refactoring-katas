@@ -71,6 +71,11 @@ data:
                         <queue name="payment/register/v1"/>
                     </multicast>
                 </address>
+                <address name="payment/store/v1">
+                    <multicast>
+                        <queue name="payment/store/v1"/>
+                    </multicast>
+                </address>
             </addresses>
             
         </core>

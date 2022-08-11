@@ -18,7 +18,8 @@ public class IsolatedTestProfile implements QuarkusTestProfile {
                 "quarkus.datasource.username", "user",
                 "quarkus.datasource.password", "password",
                 // required JMS-related properties
-                "jms.payment.destination", "dummy",
+                "jms.payment.destination.register", "dummy",
+                "jms.payment.destination.store", "dummy",
                 "jms.payment.client-id", "dummy",
                 "quarkus.artemis.url", "dummy"
         );

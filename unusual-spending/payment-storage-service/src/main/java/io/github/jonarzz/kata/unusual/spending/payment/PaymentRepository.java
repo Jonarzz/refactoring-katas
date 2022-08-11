@@ -72,8 +72,7 @@ class PaymentRepository {
         createCurrencyIfDoesNotExist(currency);
         var category = details.category();
         createCategoryIfDoesNotExist(category);
-        var time = toStringAtUtc(Optional.ofNullable(details.timestamp())
-                                         .orElseGet(OffsetDateTime::now));
+        var time = toStringAtUtc(details.timestamp());
         modifyingAdapter.modify("INSERT INTO payment "
                                 + "(id, payer_username, amount, currency, category, time, description) "
                                 + "VALUES (?, ?, ?, ?, ?, ?, ?)",

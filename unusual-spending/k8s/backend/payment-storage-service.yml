@@ -61,8 +61,10 @@ spec:
             - name:  QUARKUS_LIQUIBASE_CLEAN_AT_START
               value: 'false' # set to 'true' to recreate the schema
             # JMS
-            - name: JMS_PAYMENT_DESTINATION
+            - name: JMS_PAYMENT_DESTINATION_REGISTER
               value: payment/register/v1
+            - name: JMS_PAYMENT_DESTINATION_STORE
+              value: payment/store/v1
             - name: JMS_PAYMENT_CLIENT_ID
               valueFrom:
                 fieldRef:

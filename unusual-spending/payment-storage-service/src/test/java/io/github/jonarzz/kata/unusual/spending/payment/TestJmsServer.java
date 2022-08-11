@@ -17,12 +17,16 @@ import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BooleanSupplier;
 
 @Singleton
 class TestJmsServer {
 
     private static final EmbeddedActiveMQ EMBEDDED_ACTIVE_MQ = new EmbeddedActiveMQ();
+
+    private static final int DEFAULT_TIMEOUT_SECONDS = 5;
 
     // see: broker.xml resource and properties files in the jms/ subdirectory
     static class Config {
@@ -38,7 +42,13 @@ class TestJmsServer {
         static class Consumer {
 
             static final String USERNAME = "consumer";
-            static final String PASSWORD = "consumer321";
+            static final String PASSWORD = "consumer123";
+        }
+
+        static class Listener {
+
+            static final String USERNAME = "listener";
+            static final String PASSWORD = "listener321";
         }
     }
 
@@ -53,6 +63,8 @@ class TestJmsServer {
     }
 
     static void stop() throws Exception {
+        EMBEDDED_ACTIVE_MQ.getActiveMQServer()
+                          .stop(true);
         EMBEDDED_ACTIVE_MQ.stop();
     }
 
@@ -81,7 +93,7 @@ class TestJmsServer {
             }
             cleanUpPersistentQueues();
             waitForAtLeastOneConsumer();
-        }).get(5, SECONDS);
+        }).get(DEFAULT_TIMEOUT_SECONDS, SECONDS);
     }
 
     void cleanUpPersistentQueues() {
@@ -100,21 +112,43 @@ class TestJmsServer {
         }
     }
 
+    void blockUntilMessageCountReached(String queueName, int expectedCount) {
+        var activeMqServer = EMBEDDED_ACTIVE_MQ.getActiveMQServer();
+        var queue = Optional.ofNullable(activeMqServer.locateQueue(queueName))
+                            .orElseThrow(() -> new IllegalStateException("Queue with name "
+                                                                         + queueName + " not found"));
+        blockUntil(() -> queue.getMessageCount() == expectedCount,
+                   DEFAULT_TIMEOUT_SECONDS,
+                   "Expected messages count %s in queue %s was not reached within %ds"
+                           .formatted(expectedCount, queueName, DEFAULT_TIMEOUT_SECONDS));
+    }
+
     private void waitForAtLeastOneConsumer() {
-        new Thread(() -> {
-            var counter = 0;
-            long consumerCount;
-            do {
-                consumerCount = EMBEDDED_ACTIVE_MQ.getActiveMQServer()
-                                                  .getTotalConsumerCount();
-                if (consumerCount > 0) {
-                    singularLatch.countDown();
-                    return;
-                }
-                sleepUninterruptibly(1, SECONDS);
-            } while (++counter < connectionTimeoutSeconds);
-            throw new IllegalStateException("No consumer connected to the embedded Active MQ within "
-                                            + connectionTimeoutSeconds + " seconds");
-        }).start();
+        new Thread(() -> blockUntil(
+                () -> {
+                    long consumerCount = EMBEDDED_ACTIVE_MQ.getActiveMQServer()
+                                                           .getTotalConsumerCount();
+                    var consumerPresent = consumerCount > 0;
+                    if (consumerPresent) {
+                        singularLatch.countDown();
+                    }
+                    return consumerPresent;
+                },
+                connectionTimeoutSeconds,
+                "No consumer connected to the embedded Active MQ in " + connectionTimeoutSeconds + "s"
+        )).start();
+    }
+
+    private static void blockUntil(BooleanSupplier action, long timeoutSeconds, String timeoutExceptionMessage) {
+        var sleepTimeMs = 100;
+        var timeout = timeoutSeconds * (1000 / sleepTimeMs);
+        var counter = 0;
+        do {
+            if (action.getAsBoolean()) {
+                return;
+            }
+            sleepUninterruptibly(sleepTimeMs, MILLISECONDS);
+        } while (++counter < timeout);
+        throw new IllegalStateException(timeoutExceptionMessage);
     }
 }

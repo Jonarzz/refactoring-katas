@@ -293,7 +293,7 @@ broker/bin/artemis queue stat \
 - :white_check_mark: change `payerId` to `payerUsername` in the payment-storage-service module
 - :white_check_mark: rename module payment-service to payment-storage-service
 - :white_check_mark: remove time from aggregation timespan (should be a date-only period)
-- :memo: emit PaymentStored event from payment-storage-service
+- :white_check_mark: emit PaymentStored event from payment-storage-service
 - :memo: transform the code to comply with hexagonal architecture better
 - :memo: introduce CloudFoundation configuration
 - :memo: add EKS configuration to include existing "legacy" Kubernetes config

@@ -9,7 +9,7 @@
         <security-settings>
             <security-setting match="#">
                 <permission type="send" roles="prod"/>
-                <permission type="createDurableQueue" roles="cons"/>
+                <permission type="createDurableQueue" roles="prod,cons"/>
                 <permission type="consume" roles="cons"/>
             </security-setting>
         </security-settings>
@@ -26,6 +26,11 @@
             <address name="payment/register/v1">
                 <multicast>
                     <queue name="payment/register/v1"/>
+                </multicast>
+            </address>
+            <address name="payment/store/v1">
+                <multicast>
+                    <queue name="payment/store/v1"/>
                 </multicast>
             </address>
         </addresses>
