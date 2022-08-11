@@ -1,30 +1,32 @@
 package io.github.jonarzz.kata.unusual.spending.notification;
 
+import java.util.Locale;
+
 class UnusualExpenseI18nService {
 
     private static final String MESSAGE_KEY_PREFIX = "unusual-expenses-notification.";
 
-    private MessageRegistry messageRegistry;
+    private PropertyResourceMessageRegistry messageRegistry;
 
-    UnusualExpenseI18nService(MessageRegistry messageRegistry) {
+    UnusualExpenseI18nService(PropertyResourceMessageRegistry messageRegistry) {
         this.messageRegistry = messageRegistry;
     }
 
-    String getMessageBeginningGreeting() {
-        return messageRegistry.get(MESSAGE_KEY_PREFIX + "beginning-greeting");
+    String getMessageBeginningGreeting(Locale locale) {
+        return messageRegistry.get(MESSAGE_KEY_PREFIX + "beginning-greeting", locale);
     }
 
-    String getExpenseLinesPrefix() {
-        return messageRegistry.get(MESSAGE_KEY_PREFIX + "expense-lines-prefix");
+    String getExpenseLinesPrefix(Locale locale) {
+        return messageRegistry.get(MESSAGE_KEY_PREFIX + "expense-lines-prefix", locale);
     }
 
-    String getUnusualExpenseLine(String category, String amount) {
-        return messageRegistry.get(MESSAGE_KEY_PREFIX + "expense-line-template")
+    String getUnusualExpenseLine(Locale locale, String category, String amount) {
+        return messageRegistry.get(MESSAGE_KEY_PREFIX + "expense-line-template", locale)
                               .formatted(amount, category);
     }
 
-    String getMessageEndingGreeting() {
-        return messageRegistry.get(MESSAGE_KEY_PREFIX + "ending-greeting");
+    String getMessageEndingGreeting(Locale locale) {
+        return messageRegistry.get(MESSAGE_KEY_PREFIX + "ending-greeting", locale);
     }
 
 }

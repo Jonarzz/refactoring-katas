@@ -56,21 +56,21 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
     url: 'http://localhost/api/payment/graphql',
   }, req => {
     const {operationName, variables, query} = req.body;
-    const matchingStubs = stubs.filter(stub => {
+    stubs.forEach(stub => {
       if (operationName !== stub.operationName) {
-        return false;
+        return;
       }
       const queryMismatches = stub.queryMatchers.filter(matcher => !matcher.exec(query));
       if (queryMismatches.length > 0) {
         console.info(`Skipping stubbing as query: ${query} does not match expectations: ${queryMismatches}`);
-        return false;
+        return;
       }
       const notMatchingVariables = Object.entries(stub.variables)
                                          .filter(([key, value]) => variables[key] !== value);
       if (notMatchingVariables.length > 0) {
         console.info(`Skipping stubbing as query variables do not match: 
                       expected ${notMatchingVariables} in ${JSON.stringify(variables)}`);
-        return false;
+        return;
       }
       req.reply({
         delay: stub.responseDelayMs || 0,
@@ -79,44 +79,9 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
           data: stub.response,
         },
       });
-      return true;
     });
-    if (matchingStubs.length === 0) {
-      throw `No stub matching ${operationName} operation found!\n
-             Variables: ${JSON.stringify(variables)}\n
-             Query:\n${query}`;
-    }
   });
 };
-
-const commands: any[] = [];
-
-Cypress.on('test:after:run', (attributes) => {
-  /* eslint-disable no-console */
-  console.log('Test "%s" has finished in %dms',
-    attributes.title, attributes.duration)
-  console.table(commands)
-  commands.length = 0
-})
-
-Cypress.on('command:start', (c) => {
-  commands.push({
-    name: c.attributes.name,
-    started: +new Date(),
-  })
-})
-
-Cypress.on('command:end', (c) => {
-  const lastCommand = commands[commands.length - 1]
-
-  if (lastCommand.name !== c.attributes.name) {
-    throw new Error('Last command is wrong')
-  }
-
-  lastCommand.endedAt = +new Date()
-  lastCommand.elapsed = lastCommand.endedAt - lastCommand.started
-})
-
 
 describe('user payments table', () => {
 
@@ -322,7 +287,7 @@ describe('user payments table', () => {
       mount(<PaymentsTable username={username}/>);
 
       expandDetailsRow();
-      cy.get('.payment-row__expandable-box > div > .MuiAlert-message')
+      cy.get('.payment-row__expandable-box > div[role=alert] > .MuiAlert-message')
         .should('have.text', 'Fetching payment details failed. Please, contact with the administrator.')
         .should('be.visible');
       getProgressBar()

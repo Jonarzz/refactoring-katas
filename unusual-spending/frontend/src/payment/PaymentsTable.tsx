@@ -64,12 +64,13 @@ export const PaymentsTable = ({username}: {username: string}) => {
       .then(result => {
         setPayments(mapPayments(result));
         setError(undefined);
+        setLoading(false)
       })
       .catch(error => {
         console.error(error);
+        setLoading(false)
         setError(error.message);
-      })
-      .finally(() => setLoading(false));
+      });
   };
 
   useEffect(() => {
@@ -119,5 +120,5 @@ export const PaymentsTable = ({username}: {username: string}) => {
 };
 
 PaymentsTable.propTypes = {
-  username: PropTypes.number.isRequired
+  username: PropTypes.string.isRequired
 };

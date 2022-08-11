@@ -294,7 +294,8 @@ broker/bin/artemis queue stat \
 - :white_check_mark: rename module payment-service to payment-storage-service
 - :white_check_mark: remove time from aggregation timespan (should be a date-only period)
 - :white_check_mark: emit PaymentStored event from payment-storage-service
-- :memo: transform the code to comply with hexagonal architecture better
+- :white_check_mark: transform the code to comply with hexagonal architecture better
+- :white_check_mark: merge strictly related modules together: expense-service and notification-service
 - :memo: introduce CloudFoundation configuration
 - :memo: add EKS configuration to include existing "legacy" Kubernetes config
 - :memo: add API gateway configuration
@@ -302,8 +303,7 @@ broker/bin/artemis queue stat \
 - :memo: add lambda for payment registration
 - :memo: add lambda reading stored payments
 - :memo: create EventBridge event store configuration
-- :memo: add lambda rewriting and transforming legacy PaymentStored events
-to EventBridge event store
+- :memo: add lambda rewriting and transforming legacy PaymentStored events to EventBridge event store
 - :memo: configure Notifications table in DynamoDB
 - :memo: add lambda triggered by PaymentStored event that should create a Notifications
   table item if an entry for given period (configurable) does not exist
@@ -311,8 +311,10 @@ to EventBridge event store
 - :memo: create Step Functions handling notifications body creation
 - :memo: add notification publishing to the Step Functions
 - :memo: add EventBridge cron job to trigger the Step Functions
+- :memo: allow dynamic selection of notification period type (month, week etc.)
 - :memo: add Cognito configuration
 - :memo: expose API for users sign in, login and information retrieval
+- :memo: create notifications using locale defined for the user in Cognito attributes
 - :memo: secure API calls using Cognito roles (user / admin)
 - :memo: add front-end components to present what API exposes
 - :memo: configure CloudFront for the front-end app

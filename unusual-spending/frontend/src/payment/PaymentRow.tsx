@@ -61,12 +61,13 @@ const PaymentRow = ({payment}: {payment: Payment}) => {
         .then(result => {
           setDetails(mapPaymentDetails(result));
           setError(undefined);
+          setLoading(false);
         })
         .catch(error => {
-          console.error(error);
           setError(error.message);
-        })
-        .finally(() => setLoading(false));
+          setLoading(false);
+          console.error(error);
+        });
     }
   };
 

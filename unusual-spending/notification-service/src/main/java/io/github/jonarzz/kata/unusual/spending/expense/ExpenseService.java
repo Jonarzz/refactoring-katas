@@ -1,14 +1,15 @@
 package io.github.jonarzz.kata.unusual.spending.expense;
 
 import io.github.jonarzz.kata.unusual.spending.payment.PaymentService;
-import org.jboss.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 public class ExpenseService {
 
-    private static final Logger LOG = Logger.getLogger(ExpenseService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExpenseService.class);
 
     private final PaymentService paymentService;
 
@@ -17,7 +18,7 @@ public class ExpenseService {
     }
 
     public Collection<UnusualExpense> calculateUnusualExpenses(TimestampedExpenseComparisonCriteria criteria) {
-        LOG.debugf("Calculating unusual expenses based on %s", criteria);
+        LOGGER.debug("Calculating unusual expenses based on {}", criteria);
         var username = criteria.username();
         var policy = criteria.groupingPolicy();
         var baseExpenses = paymentService.aggregateTotalUserExpensesBy(policy, username, criteria.baseTimespan());
@@ -31,7 +32,7 @@ public class ExpenseService {
                                        .comparedTo(base)
                                        .satisfiesThreshold(criteria.threshold())) {
                 var expense = new UnusualExpense(category, current);
-                LOG.debugf("Found %s for user %s", expense, username);
+                LOGGER.debug("Found {} for user {}", expense, username);
                 paymentsMatchingThreshold.add(expense);
             }
         }

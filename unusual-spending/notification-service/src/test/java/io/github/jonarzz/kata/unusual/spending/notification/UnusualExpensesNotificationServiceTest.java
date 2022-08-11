@@ -12,7 +12,7 @@ import java.util.Map;
 
 class UnusualExpensesNotificationServiceTest {
 
-    static final MessageRegistry MESSAGE_REGISTRY = new MessageRegistry();
+    static final PropertyResourceMessageRegistry MESSAGE_REGISTRY = new PropertyResourceMessageRegistry();
 
     @Test
     void noUnusualExpenses() {

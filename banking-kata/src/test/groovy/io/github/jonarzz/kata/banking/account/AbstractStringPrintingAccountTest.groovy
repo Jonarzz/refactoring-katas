@@ -201,7 +201,7 @@ abstract class AbstractStringPrintingAccountTest extends AbstractValidatedAccoun
             invocationsCount << [10, 20, 50, 99]
     }
 
-    @Timeout(3)
+    @Timeout(5)
     def "Print statement during multithreaded operations execution - #invocationsCount invocations"() {
         given:
             testClock.set(createInstant(2022, 1, 30))

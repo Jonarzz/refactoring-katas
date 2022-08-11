@@ -16,7 +16,6 @@
 
     <modules>
         <module>payment-storage-service</module>
-        <module>expense-service</module>
         <module>notification-service</module>
     </modules>
 
@@ -32,18 +31,6 @@
                 <groupId>io.github.jonarzz</groupId>
                 <artifactId>payment-storage-service</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.jonarzz</groupId>
-                <artifactId>expense-service</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.github.jonarzz</groupId>
-                <artifactId>expense-service</artifactId>
-                <version>${project.version}</version>
-                <type>test-jar</type>
-                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
