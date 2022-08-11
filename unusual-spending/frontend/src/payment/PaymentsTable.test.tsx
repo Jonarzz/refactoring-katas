@@ -85,15 +85,25 @@ const interceptApiCall = (stubs: GraphqlStub[]) => {
 
 describe('user payments table', () => {
 
-  it('should display empty table if no result is found', () => {
+  it('should display an error message if user is not logged in', () => {
+    localStorage.removeItem('username');
+
+    mount(<PaymentsTable/>);
+
+    cy.get('div')
+      .contains('Access denied');
+  });
+
+  it('should display a message if no result is found', () => {
     const username = 'user-1';
     interceptApiCall([{
       ...UserPaymentsStubBase,
       variables: {username},
       response: {userPayments: []},
     }]);
+    localStorage.setItem('username', username);
 
-    mount(<PaymentsTable username={username}/>);
+    mount(<PaymentsTable/>);
 
     cy.get('div')
       .contains('No payments found');
@@ -110,8 +120,9 @@ describe('user payments table', () => {
         ],
       },
     }]);
+    localStorage.setItem('username', username);
 
-    mount(<PaymentsTable username={username}/>);
+    mount(<PaymentsTable/>);
 
     const expectedHeaderCells = ['Amount', 'Currency'];
     cy.get('table > thead > tr > th:not([data-test-ignore])')
@@ -131,8 +142,9 @@ describe('user payments table', () => {
           createPayment(secondAmount, secondCurrency)]
       },
     }]);
+    localStorage.setItem('username', username);
 
-    mount(<PaymentsTable username={username}/>);
+    mount(<PaymentsTable/>);
 
     const expectedRows = [
       firstAmount, firstCurrency,
@@ -151,8 +163,9 @@ describe('user payments table', () => {
       variables: {username},
       response: {userPayments: []},
     }]);
+    localStorage.setItem('username', username);
 
-    mount(<PaymentsTable username={username}/>);
+    mount(<PaymentsTable/>);
 
     cy.get('circle')
       .should('be.visible');
@@ -165,8 +178,9 @@ describe('user payments table', () => {
       variables: {username},
       responseCode: 500
     }]);
+    localStorage.setItem('username', username);
 
-    mount(<PaymentsTable username={username}/>);
+    mount(<PaymentsTable/>);
 
     cy.get('div')
       .contains('Fetching payments failed. Please, contact with the administrator.');
@@ -196,8 +210,9 @@ describe('user payments table', () => {
           }
         }
       }]);
+      localStorage.setItem('username', username);
 
-      mount(<PaymentsTable username={username}/>);
+      mount(<PaymentsTable/>);
 
       expandDetailsRow();
       const expectedHeaderCells = [
@@ -229,8 +244,9 @@ describe('user payments table', () => {
           }
         }
       }]);
+      localStorage.setItem('username', username);
 
-      mount(<PaymentsTable username={username}/>);
+      mount(<PaymentsTable/>);
 
       expandDetailsRow();
       const expectedCells = [
@@ -261,8 +277,9 @@ describe('user payments table', () => {
           }
         }
       }]);
+      localStorage.setItem('username', username);
 
-      mount(<PaymentsTable username={username}/>);
+      mount(<PaymentsTable/>);
 
       expandDetailsRow();
       getProgressBar()
@@ -283,8 +300,9 @@ describe('user payments table', () => {
         variables: {paymentId},
         responseCode: 500
       }]);
+      localStorage.setItem('username', username);
 
-      mount(<PaymentsTable username={username}/>);
+      mount(<PaymentsTable/>);
 
       expandDetailsRow();
       cy.get('.payment-row__expandable-box > div[role=alert] > .MuiAlert-message')

@@ -9,7 +9,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
-    <PaymentsTable username={'test_user'}/>
+    <PaymentsTable/>
   </React.StrictMode>
 );
 

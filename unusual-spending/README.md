@@ -296,6 +296,7 @@ broker/bin/artemis queue stat \
 - :white_check_mark: emit PaymentStored event from payment-storage-service
 - :white_check_mark: transform the code to comply with hexagonal architecture better
 - :white_check_mark: merge strictly related modules together: expense-service and notification-service
+- :white_check_mark: integration test of front-end app using payment-storage-service API 
 - :memo: introduce CloudFoundation configuration
 - :memo: add EKS configuration to include existing "legacy" Kubernetes config
 - :memo: add API gateway configuration

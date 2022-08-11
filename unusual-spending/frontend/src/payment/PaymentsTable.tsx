@@ -1,7 +1,6 @@
 import {ApolloQueryResult, gql} from '@apollo/client';
 import {Alert, Button, CircularProgress, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from '@mui/material';
-import PropTypes from 'prop-types';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {runQuery} from './PaymentApiClient';
 import PaymentRow from './PaymentRow';
 import './PaymentsTable.css';
@@ -50,11 +49,12 @@ const mapPayments = (result: ApolloQueryResult<UserPaymentsResponse>): Payment[]
     });
   });
 
-export const PaymentsTable = ({username}: {username: string}) => {
+export const PaymentsTable = () => {
 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const username = useRef('');
 
   const getUserPayments = (username: string, force = false) => {
     setLoading(true);
@@ -67,14 +67,22 @@ export const PaymentsTable = ({username}: {username: string}) => {
         setLoading(false)
       })
       .catch(error => {
+        setError('Fetching payments failed. Please, contact with the administrator.');
+        setLoading(false);
         console.error(error);
-        setLoading(false)
-        setError(error.message);
       });
   };
 
   useEffect(() => {
-    getUserPayments(username);
+    const loggedInUser = localStorage.getItem('username');
+    if (!loggedInUser) {
+      // TODO redirect to login page
+      setError('Access denied');
+      setLoading(false);
+      return;
+    }
+    username.current = loggedInUser;
+    getUserPayments(loggedInUser);
   }, []);
 
   if (loading) {
@@ -84,7 +92,7 @@ export const PaymentsTable = ({username}: {username: string}) => {
   if (error) {
     return (
       <Alert severity="error" variant="outlined">
-        Fetching payments failed. Please, contact with the administrator.
+        {error}
       </Alert>
     );
   }
@@ -99,7 +107,7 @@ export const PaymentsTable = ({username}: {username: string}) => {
 
   return (
     <div>
-      <Button onClick={() => getUserPayments(username, true)}>Reload</Button>
+      <Button onClick={() => getUserPayments(username.current, true)}>Reload</Button>
       <TableContainer component={Paper}>
         <Table size="small">
           <TableHead>
@@ -110,15 +118,11 @@ export const PaymentsTable = ({username}: {username: string}) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {payments.map((payment) => <PaymentRow payment={payment}
-                                                   key={payment.id}/>)}
+            {payments.map(payment => <PaymentRow payment={payment}
+                                                 key={payment.id}/>)}
           </TableBody>
         </Table>
       </TableContainer>
     </div>
   );
-};
-
-PaymentsTable.propTypes = {
-  username: PropTypes.string.isRequired
 };
