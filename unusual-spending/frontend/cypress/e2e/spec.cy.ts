@@ -5,7 +5,7 @@ const LOCAL_STORAGE_KEYS = {
 describe('user payments', () => {
 
   // TODO react router
-  const PAYMENTS_URL = 'http://localhost';
+  const PAYMENTS_URL = 'http://frontend-app-bucket.s3.localhost.localstack.cloud:4566/index.html';
 
   // scripts/sql/payment-storage-service.sql should be run on the database before test
   // TODO in the future the data will be added in the tests , so no scripts to load the data exists

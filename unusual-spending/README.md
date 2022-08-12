@@ -152,7 +152,7 @@ empty means notification hasn't been sent yet
 - last_error  (_String_) - information about last error that occurred 
 during notification handling (creation, publication)
 - retry_count (_int_)    - indicates how many times the notification handling was retried
-after an error; should be used to prevent retrying infinitely 
+after an error; should be used to prevent retrying infinitely
 
 ### Kubernetes microservices
 #### Rationale
@@ -175,8 +175,43 @@ Again - in the cloud environment it should be replaced with a solution designed
 to handle messaging. In AWS it would be: SNS / EventBridge / Kinesis / Amazon MQ.
 Since topics are used, SQS would not be suitable.
 
-#### Setup and usage
-All the steps to run the cluster are included in the `scripts/runLocalCluster.sh` file.
+### Local setup and usage
+#### Prerequisites
+JDK 17, Maven, Node.js, Docker, Kubernetes, Minikube, AWS CLI and Localstack
+
+### AWS services
+Run `scripts/aws/runLocalAwsStack.sh` or execute steps below:
+
+1. Add a Localstack DNS entry to the `/etc/hosts` file:
+`127.0.0.1 localhost.localstack.cloud`
+
+2. Run Localstack (presence in `PATH` assumed):
+`localstack start`
+
+3. Deploy the Cloud Formation configuration:
+
+`awslocal cloudformation deploy --stack-name unusual-spending-stack --template-file aws/unusual-spending-template.yaml`
+
+4. Upload the frontend app build files (frontend app has to be built before that):
+```bash
+cd frontend/build
+awslocal s3 cp --recursive . s3://frontend-app-bucket
+```
+
+5. Print information about the Cloud Formation:
+
+`awslocal cloudformation describe-stacks --stack-name unusual-spending-stack`
+
+Frontend app is exposed from S3 bucket at port `4566` by default:
+http://frontend-app-bucket.s3.localhost.localstack.cloud:4566/index.html
+
+(s3-website returns `The specified bucket does not have a website configuration` for some reason - 
+I will have to deal with it in the future)
+
+6. Start up Kubernetes cluster as described below. Run Cypress E2E tests to verify the application.
+
+#### Kubernetes
+All the steps to run the cluster are included in the `scripts/k8s/runLocalCluster.sh` file.
 JDK 17, Maven, Docker, Kubernetes, Minikube and Node.js need to be installed.
 
 1. Startup Minikube:
@@ -297,10 +332,10 @@ broker/bin/artemis queue stat \
 - :white_check_mark: transform the code to comply with hexagonal architecture better
 - :white_check_mark: merge strictly related modules together: expense-service and notification-service
 - :white_check_mark: integration test of front-end app using payment-storage-service API 
-- :memo: introduce CloudFoundation configuration
+- :white_check_mark: introduce CloudFoundation configuration
 - :memo: add EKS configuration to include existing "legacy" Kubernetes config
 - :memo: add API gateway configuration
-- :memo: extract front-end app to S3
+- :white_check_mark: extract front-end app to S3
 - :memo: add lambda for payment registration
 - :memo: add lambda reading stored payments
 - :memo: create EventBridge event store configuration

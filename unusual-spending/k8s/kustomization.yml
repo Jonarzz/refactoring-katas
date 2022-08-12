@@ -5,5 +5,4 @@ resources:
   - database.yaml
   - jms-broker.yml
   - backend/payment-storage-service.yml
-  - frontend/ingress-for-frontend.yml
-  - frontend/frontend-app.yml
+  - api-ingress.yml

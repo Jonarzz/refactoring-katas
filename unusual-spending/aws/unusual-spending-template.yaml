@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Unusual Spending system template'
+
+Outputs:
+  WebsiteURL:
+    Description: Frontend app URL (S3)
+    Value: !Sub '${FrontendAppBucket.WebsiteURL}'
+  LambdaRoleARN:
+    Description: Role for Lambda execution.
+    Value: !GetAtt:
+      - LambdaRole
+      - Arn
+    Export:
+      Name: !Sub LambdaRole
+
+Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName:
+        Fn::Sub: lambda-role
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonEventBridgeFullAccess
+      Path: /
+  FrontendAppBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: frontend-app-bucket
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+    DeletionPolicy: Retain
+    Environment:
+      Variables:
+        TZ: UTC
+  FrontendAppBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendAppBucket
+      PolicyDocument:
+        Id: FrontendAppBucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${FrontendAppBucket}/*'
