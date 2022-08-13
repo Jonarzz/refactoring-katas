@@ -1,9 +1,7 @@
 package io.github.jonarzz.kata.unusual.spending.payment;
 
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.System.getenv;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
 import static javax.jms.JMSContext.AUTO_ACKNOWLEDGE;
@@ -159,16 +157,14 @@ class PaymentRegistrationListenerTest {
                       }
                     }"""
     })
-    void invalidMessage(String message) throws JsonProcessingException {
+    void invalidMessage(String message) throws Exception {
+        var exceptionCaptor = ((ExceptionCatchingObjectMapper) objectMapper).blockingExceptionCaptor();
+
         sendEventsToRegistrationDestination(payerUsername -> message);
 
-        // TODO find a way to spy on ObjectMapper in Quarkus tests to handle this with a latch
-        //      don't want to waste any more time on it now
-        sleepUninterruptibly(100, MILLISECONDS);
-
+        assertThat(exceptionCaptor.getWithin(1, SECONDS))
+                .isInstanceOf(JsonProcessingException.class);
         assertThat(paymentService.getProcessedEvents())
-                .isEmpty();
-        assertThat(pollFromStorageDestination(0))
                 .isEmpty();
     }
 
